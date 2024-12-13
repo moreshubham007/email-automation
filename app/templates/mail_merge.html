@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="h3 mb-4">Mail Merge</h1>
+
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Create Drafts</h5>
+        </div>
+        <div class="card-body">
+            <form id="mailMergeForm">
+                <div class="mb-3">
+                    <label for="csvFile" class="form-label">CSV File</label>
+                    <input type="file" class="form-control" id="csvFile" accept=".csv" required>
+                    <small class="text-muted">
+                        CSV must include: template_name, sender_email, email columns
+                    </small>
+                </div>
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="test_mode" name="test_mode">
+                        <label class="form-check-label" for="test_mode">
+                            Preview Mode (don't create drafts)
+                        </label>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    Process Mail Merge
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Preview Modal -->
+<div class="modal fade" id="previewModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Preview Drafts</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="previewContainer"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/mail_merge.js') }}"></script>
+{% endblock %} 

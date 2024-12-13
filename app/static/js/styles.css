@@ -1,0 +1,34 @@
+.email-template {
+    margin: 20px 0;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.template-header {
+    margin-bottom: 15px;
+    color: #666;
+    line-height: 1.5;
+}
+
+.template-body {
+    white-space: pre-wrap;
+    line-height: 1.6;
+}
+
+/* Rich text editor styles */
+.tox-tinymce {
+    border: 1px solid #ced4da !important;
+    border-radius: 0.25rem !important;
+}
+
+.mce-content-body p {
+    margin: 0 0 1em 0;
+}
+
+.template-preview {
+    white-space: pre-line;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    line-height: 1.6;
+    padding: 1rem;
+} 

@@ -1,0 +1,266 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="h3 mb-4">Email Scheduler</h1>
+
+    <!-- Scheduler Controls -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Schedule Settings</h5>
+        </div>
+        <div class="card-body">
+            <form method="POST" enctype="multipart/form-data" id="schedulerForm">
+                {{ form.csrf_token }}
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            {{ form.csv_file.label(class="form-label") }}
+                            {{ form.csv_file(class="form-control") }}
+                            <small class="form-text text-muted">
+                                CSV should include sender_email column
+                            </small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            {{ form.min_delay.label(class="form-label") }}
+                            {{ form.min_delay(class="form-control", type="number", min="30") }}
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            {{ form.max_delay.label(class="form-label") }}
+                            {{ form.max_delay(class="form-control", type="number", min="60") }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary" id="startButton">
+                        <i class="bi bi-play-fill"></i> Start Sending
+                    </button>
+                    <button type="button" class="btn btn-danger" id="stopButton" disabled>
+                        <i class="bi bi-stop-fill"></i> Stop Sending
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Ongoing Processes -->
+    <div id="ongoingProcesses" class="card mt-4" style="display: none;">
+        <div class="card-header">
+            <h5 class="mb-0">Ongoing Processes</h5>
+        </div>
+        <div class="card-body">
+            <div id="processContainer">
+                <!-- Process items will be added here dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Log Section -->
+    <div class="card mt-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Status Log</h5>
+            <button class="btn btn-sm btn-outline-secondary" onclick="clearLog()">
+                <i class="bi bi-trash"></i> Clear Log
+            </button>
+        </div>
+        <div class="card-body">
+            <div id="statusLog" class="border rounded p-3" style="height: 300px; overflow-y: auto;">
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+let socket;
+let reconnectAttempts = 0;
+const maxReconnectAttempts = 5;
+const reconnectDelay = 3000; // 3 seconds
+
+function connectWebSocket() {
+    // Create WebSocket connection
+    socket = new WebSocket('ws://' + window.location.host + '/ws');
+
+    socket.onopen = function(e) {
+        console.log('WebSocket connection established');
+        reconnectAttempts = 0;
+    };
+
+    socket.onmessage = function(event) {
+        const data = JSON.parse(event.data);
+        
+        if (data.type === 'log') {
+            addLogMessage(data.message, data.level);
+        }
+        else if (data.type === 'progress') {
+            updateProgress(data.progress);
+        }
+        else if (data.type === 'stats') {
+            updateStats(data.stats);
+        }
+    };
+
+    socket.onclose = function(event) {
+        console.log('WebSocket connection closed');
+        if (reconnectAttempts < maxReconnectAttempts) {
+            setTimeout(function() {
+                reconnectAttempts++;
+                console.log(`Attempting to reconnect (${reconnectAttempts}/${maxReconnectAttempts})...`);
+                connectWebSocket();
+            }, reconnectDelay);
+        }
+    };
+
+    socket.onerror = function(error) {
+        console.error('WebSocket error:', error);
+    };
+}
+
+// Connect when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    connectWebSocket();
+});
+
+function addLogMessage(message, level = 'info') {
+    const statusLog = document.getElementById('statusLog');
+    const timestamp = new Date().toLocaleTimeString();
+    
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `log-message text-${level}`;
+    messageDiv.innerHTML = `[${timestamp}] ${message}`;
+    
+    statusLog.appendChild(messageDiv);
+    statusLog.scrollTop = statusLog.scrollHeight;
+
+    // Play sound based on message level
+    playSound(level);
+}
+
+function clearLog() {
+    const statusLog = document.getElementById('statusLog');
+    statusLog.innerHTML = '';
+}
+
+function updateProgress(progress) {
+    const processesDiv = document.getElementById('ongoingProcesses');
+    processesDiv.style.display = 'block';
+    
+    const container = document.getElementById('processContainer');
+    
+    // Create or update process item
+    let processItem = document.getElementById(`process-${progress.sender_email}`);
+    if (!processItem) {
+        processItem = document.createElement('div');
+        processItem.id = `process-${progress.sender_email}`;
+        processItem.className = 'mb-3';
+        container.appendChild(processItem);
+    }
+    
+    const percentage = Math.round((progress.drafts_sent / progress.total_drafts) * 100);
+    
+    processItem.innerHTML = `
+        <div class="d-flex justify-content-between align-items-center mb-1">
+            <small>${progress.sender_email}</small>
+            <small>${progress.drafts_sent}/${progress.total_drafts}</small>
+        </div>
+        <div class="progress" style="height: 20px;">
+            <div class="progress-bar" role="progressbar" 
+                 style="width: ${percentage}%;" 
+                 aria-valuenow="${percentage}" 
+                 aria-valuemin="0" 
+                 aria-valuemax="100">
+                ${percentage}%
+            </div>
+        </div>
+        ${progress.next_send_time ? 
+            `<small class="text-muted">Next send: ${new Date(progress.next_send_time).toLocaleTimeString()}</small>` 
+            : ''}
+    `;
+}
+
+function updateStats(stats) {
+    const statsDiv = document.getElementById('progressStats');
+    if (statsDiv) {
+        statsDiv.innerHTML = `
+            Total Senders: ${stats.total_senders} | 
+            Emails Sent: ${stats.total_sent} | 
+            Remaining: ${stats.remaining}
+        `;
+    }
+}
+
+// Handle form submission
+document.getElementById('schedulerForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    
+    fetch('/scheduler', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            addLogMessage(data.error, 'danger');
+        } else {
+            document.getElementById('startButton').disabled = true;
+            document.getElementById('stopButton').disabled = false;
+        }
+    })
+    .catch(error => {
+        addLogMessage('Error starting scheduler: ' + error, 'danger');
+    });
+});
+
+// Handle stop button
+document.getElementById('stopButton').addEventListener('click', function() {
+    fetch('/scheduler/stop', {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            addLogMessage(data.error, 'danger');
+        } else {
+            document.getElementById('startButton').disabled = false;
+            document.getElementById('stopButton').disabled = true;
+        }
+    })
+    .catch(error => {
+        addLogMessage('Error stopping scheduler: ' + error, 'danger');
+    });
+});
+
+// Sound functions
+function playSound(level) {
+    let sound;
+    switch(level) {
+        case 'success':
+            sound = document.getElementById('successSound');
+            break;
+        case 'error':
+        case 'danger':
+            sound = document.getElementById('errorSound');
+            break;
+        case 'complete':
+            sound = document.getElementById('completeSound');
+            break;
+        default:
+            return; // Don't play sound for other levels
+    }
+    
+    if (sound && sound.play) {
+        sound.currentTime = 0;
+        sound.play().catch(e => console.log('Error playing sound:', e));
+    }
+}
+</script>
+{% endblock %}
+{% endblock %} 

@@ -1,0 +1,378 @@
+.theme-batman {
+    --theme-primary: #FDB913;      /* Batman yellow */
+    --theme-secondary: #808080;    /* Gray */
+    --theme-dark: #1A1A1A;         /* Dark gray/black */
+    --theme-accent: #FDB913;       /* Batman yellow */
+    --theme-background: #2D2D2D;   /* Dark background */
+    --theme-text: #FFFFFF;         /* White text */
+    --theme-card-bg: #1A1A1A;      /* Card background */
+    --theme-border: #444;          /* Border color */
+    
+    /* Apply theme styles */
+    background-color: var(--theme-background);
+    color: var(--theme-text);
+    font-family: 'Gotham', 'Arial', sans-serif;
+    position: relative;
+    overflow-x: hidden;
+}
+
+/* Card styling */
+.theme-batman .card {
+    background-color: var(--theme-card-bg);
+    border-color: var(--theme-border);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* Button styling */
+.theme-batman .btn-primary {
+    background-color: var(--theme-primary);
+    border-color: var(--theme-primary);
+    color: var(--theme-dark);
+    font-weight: bold;
+}
+
+.theme-batman .btn-secondary {
+    background-color: var(--theme-secondary);
+    border-color: var(--theme-secondary);
+    color: var(--theme-text);
+}
+
+/* Table styling */
+.theme-batman .table {
+    color: var(--theme-text);
+    --bs-table-bg: var(--theme-card-bg);
+    --bs-table-striped-bg: #2D2D2D;
+    --bs-table-hover-bg: #333333;
+    --bs-table-border-color: var(--theme-border);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.theme-batman .table thead th {
+    background-color: var(--theme-dark);
+    color: var(--theme-primary);
+    border-bottom: 2px solid var(--theme-primary);
+}
+
+/* Headings */
+.theme-batman h1.h3.mb-0.text-gray-800,
+.theme-batman .h3.mb-0.text-gray-800,
+.theme-batman h1:not(.card-title):not([class*="bg-white"]),
+.theme-batman h2:not(.card-title):not([class*="bg-white"]),
+.theme-batman h3:not(.card-title):not([class*="bg-white"]),
+.theme-batman .h3.mb-4:not([class*="bg-white"]) {
+    color: var(--theme-text) !important;
+}
+
+/* Card headers */
+.theme-batman .card-header {
+    background-color: var(--theme-dark);
+    border-bottom: 2px solid var(--theme-primary);
+}
+
+.theme-batman .card-header h5,
+.theme-batman .card-header .mb-0,
+.theme-batman .card-header .card-title {
+    color: var(--theme-primary) !important;
+}
+
+/* Text colors */
+.theme-batman .text-gray-800,
+.theme-batman .text-dark {
+    color: var(--theme-text) !important;
+}
+
+/* Form controls */
+.theme-batman .form-control {
+    background-color: #333333;
+    border-color: var(--theme-border);
+    color: var(--theme-text) !important;
+}
+
+.theme-batman .form-control::placeholder {
+    color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* Download logs button */
+.theme-batman .btn-outline-secondary {
+    color: var(--theme-text) !important;
+    border-color: var(--theme-text);
+    background-color: transparent;
+}
+
+.theme-batman .btn-outline-secondary:hover {
+    color: var(--theme-dark) !important;
+    background-color: var(--theme-text);
+    border-color: var(--theme-text);
+}
+
+/* Sidebar styling */
+.theme-batman #sidebar {
+    background-color: var(--theme-dark);
+}
+
+.theme-batman #sidebar .nav-link {
+    color: var(--theme-text) !important;
+}
+
+.theme-batman #sidebar .nav-link:hover {
+    background-color: var(--theme-primary);
+    color: var(--theme-dark) !important;
+}
+
+/* Animation for hover effects */
+.theme-batman .btn {
+    transition: all 0.3s ease;
+}
+
+.theme-batman .btn:hover {
+    transform: translateY(-2px);
+}
+
+/* Add this to your Batman theme */
+.theme-batman .text-muted {
+    --bs-text-opacity: 0.75;  /* Slightly transparent for muted effect */
+    color: #FFFFFF !important;  /* White text */
+}
+
+/* For specific cases where we need more contrast */
+.theme-batman .card .text-muted,
+.theme-batman .modal .text-muted,
+.theme-batman small.text-muted {
+    --bs-text-opacity: 0.85;  /* More opaque in cards/modals */
+    color: #FFFFFF !important;
+}
+
+/* Text colors in dark backgrounds */
+.theme-batman .table,
+.theme-batman .table td,
+.theme-batman .table th,
+.theme-batman .table .text-muted,
+.theme-batman .table .text-gray-800,
+.theme-batman .table small,
+.theme-batman [class*="bg-dark"] {
+    color: #FFFFFF !important;
+}
+
+/* Table text styling */
+.theme-batman .table {
+    color: var(--theme-text);
+}
+
+.theme-batman .table tbody td,
+.theme-batman .table tbody th,
+.theme-batman .table tbody tr {
+    color: var(--theme-text) !important;
+}
+
+/* Table header text */
+.theme-batman .table thead th {
+    color: var(--theme-primary) !important;  /* Keep headers yellow */
+}
+
+/* Muted text in tables */
+.theme-batman .table .text-muted,
+.theme-batman .table small {
+    --bs-text-opacity: 0.85;
+    color: #FFFFFF !important;
+}
+
+/* Any text in dark backgrounds */
+.theme-batman [style*="background-color: #1A1A1A"],
+.theme-batman [style*="background-color: #2D2D2D"],
+.theme-batman [style*="background: #1A1A1A"],
+.theme-batman [style*="background: #2D2D2D"] {
+    color: #FFFFFF !important;
+}
+
+/* Form check labels */
+.theme-batman .form-check-label {
+    color: var(--theme-text) !important;  /* White text */
+}
+
+/* Specific case for test mode label */
+.theme-batman label[for="test_mode"] {
+    color: var(--theme-text) !important;
+}
+
+/* General form labels in dark backgrounds */
+.theme-batman .form-check,
+.theme-batman .form-check-input + label,
+.theme-batman .form-check-label {
+    color: var(--theme-text) !important;
+}
+
+/* Form labels and text */
+.theme-batman .form-label,
+.theme-batman .card-text,
+.theme-batman h6.m-0.font-weight-bold,
+.theme-batman label,
+.theme-batman p {
+    color: var(--theme-text) !important;
+}
+
+/* Input fields and placeholders */
+.theme-batman .form-control {
+    background-color: #333333;
+    border-color: var(--theme-border);
+    color: var(--theme-text) !important;
+}
+
+.theme-batman .form-control::placeholder {
+    color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* Search input specific */
+.theme-batman #searchInput,
+.theme-batman #searchInput::placeholder {
+    color: var(--theme-text) !important;
+}
+
+/* Project name input specific */
+.theme-batman #project_name,
+.theme-batman #project_name::placeholder {
+    color: var(--theme-text) !important;
+}
+
+/* Recent Templates heading */
+.theme-batman h6.m-0.font-weight-bold {
+    color: var(--theme-text) !important;
+}
+
+/* Card text and paragraphs */
+.theme-batman .card-text,
+.theme-batman p {
+    color: var(--theme-text) !important;
+}
+
+/* Card titles */
+.theme-batman .card-title,
+.theme-batman h5.card-title,
+.theme-batman .card-body .card-title {
+    color: var(--theme-text) !important;
+}
+
+/* Email address card titles */
+.theme-batman h5.card-title.mb-2 {
+    color: var(--theme-text) !important;
+}
+
+/* Batman background animations */
+@keyframes batSignal {
+    0% { 
+        opacity: 0.02;
+        transform: translate(-50%, -50%) scale(1) rotate(0deg);
+    }
+    25% {
+        opacity: 0.03;
+        transform: translate(-50%, -50%) scale(1.1) rotate(-5deg);
+    }
+    50% {
+        opacity: 0.02;
+        transform: translate(-50%, -50%) scale(1) rotate(0deg);
+    }
+    75% {
+        opacity: 0.03;
+        transform: translate(-50%, -50%) scale(1.1) rotate(5deg);
+    }
+    100% {
+        opacity: 0.02;
+        transform: translate(-50%, -50%) scale(1) rotate(0deg);
+    }
+}
+
+/* Background doodle */
+.theme-batman::before {
+    content: '';
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: 600px;
+    height: 600px;
+    background-image: url('/static/images/doodles/batman/doodle.svg');
+    background-size: contain;
+    background-repeat: no-repeat;
+    opacity: 0.02;
+    z-index: -1;
+    animation: batSignal 10s infinite ease-in-out;
+    pointer-events: none;
+    filter: drop-shadow(0 0 20px rgba(253, 185, 19, 0.1));
+}
+
+/* Add a second bat signal for layered effect */
+.theme-batman::after {
+    content: '';
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: 400px;
+    height: 400px;
+    background-image: url('/static/images/doodles/batman/doodle.svg');
+    background-size: contain;
+    background-repeat: no-repeat;
+    opacity: 0.015;
+    z-index: -1;
+    animation: batSignal 8s infinite ease-in-out reverse;
+    pointer-events: none;
+    filter: drop-shadow(0 0 15px rgba(253, 185, 19, 0.05));
+}
+
+/* Batman character animation */
+@keyframes batmanSwoop {
+    0% { 
+        transform: translate(-100%, -100%) rotate(45deg) scale(0.1);
+        opacity: 0;
+    }
+    20% { 
+        transform: translate(50%, 50%) rotate(0deg) scale(2);
+        opacity: 1;
+    }
+    40% {
+        transform: translate(50%, 50%) rotate(0deg) scale(2);
+        opacity: 1;
+    }
+    60% {
+        transform: translate(50%, 50%) rotate(360deg) scale(3);
+        opacity: 0.8;
+    }
+    80% {
+        transform: translate(50%, 50%) rotate(720deg) scale(0.5);
+        opacity: 0.6;
+    }
+    100% { 
+        transform: translate(200%, -100%) rotate(1080deg) scale(0.1);
+        opacity: 0;
+    }
+}
+
+.theme-character-batman {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    font-size: 64px;
+    transform: translate(-50%, -50%);
+    animation: batmanSwoop 4s ease-in-out forwards;
+    z-index: 9999;
+    pointer-events: none;
+}
+
+.theme-character-batman::before {
+    content: '🦇';
+}
+
+/* Gmail count styling */
+.theme-batman .h5.mb-0.font-weight-bold.text-gray-800 {
+    color: var(--theme-text) !important;
+}
+
+/* Debug buttons in Batman theme */
+.theme-batman.debug-mode .position-fixed.bottom-0.start-0 {
+    left: 250px !important;
+    margin-left: 0 !important;
+}
+
+.theme-batman .position-fixed.bottom-0.start-0 .btn {
+    background-color: var(--theme-dark);
+    border-color: var(--theme-primary);
+    color: var(--theme-primary);
+} 

@@ -1,0 +1,52 @@
+:root {
+    --theme-primary: #0d6efd;      /* Bootstrap primary blue */
+    --theme-secondary: #6c757d;    /* Bootstrap secondary gray */
+    --theme-dark: #212529;         /* Bootstrap dark */
+    --theme-accent: #0dcaf0;       /* Bootstrap info */
+    --theme-background: #f8f9fa;   /* Light gray background */
+    --theme-text: #212529;         /* Dark text */
+    --theme-card-bg: #ffffff;      /* White cards */
+    --theme-border: #dee2e6;       /* Bootstrap border color */
+}
+
+.theme-basic {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.theme-basic .theme-logo {
+    background-color: transparent;
+    padding: 10px;
+}
+
+/* Navbar styling */
+.theme-basic #sidebar {
+    background-color: var(--theme-dark) !important;
+}
+
+/* Card styling */
+.theme-basic .card {
+    background-color: var(--theme-card-bg);
+    border-color: var(--theme-border);
+}
+
+/* Button styling */
+.theme-basic .btn-primary {
+    background-color: var(--theme-primary);
+    border-color: var(--theme-primary);
+}
+
+.theme-basic .btn-secondary {
+    background-color: var(--theme-secondary);
+    border-color: var(--theme-secondary);
+}
+
+/* Debug buttons in Basic theme */
+.theme-basic.debug-mode .position-fixed.bottom-0.start-0 {
+    left: 250px !important;
+    margin-left: 0 !important;
+}
+
+.theme-basic .position-fixed.bottom-0.start-0 .btn {
+    background-color: #f8f9fa;
+    border-color: #dee2e6;
+} 

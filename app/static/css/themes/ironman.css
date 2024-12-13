@@ -1,0 +1,384 @@
+.theme-ironman {
+    --theme-primary: #FF3838;
+    --theme-secondary: #FFD700;
+    --theme-dark: #990000;
+    --theme-accent: #FFD700;
+    --theme-background: #1A0000;
+    --theme-text: #FFFFFF;
+    --theme-card-bg: #2D0000;
+    --theme-border: #FF5252;
+    
+    background-color: var(--theme-background);
+    color: var(--theme-text);
+    font-family: 'Industry', 'Arial', sans-serif;
+    position: relative;
+    overflow-x: hidden;
+}
+
+.theme-ironman #sidebar {
+    background-color: var(--theme-dark) !important;
+    box-shadow: 0 0 15px rgba(255, 56, 56, 0.3);
+}
+
+.theme-ironman #sidebar .nav-link {
+    color: var(--theme-text) !important;
+}
+
+.theme-ironman #sidebar .nav-link:hover {
+    background-color: var(--theme-secondary);
+    color: var(--theme-dark) !important;
+}
+
+.theme-ironman .card {
+    background-color: var(--theme-card-bg);
+    border: 1px solid var(--theme-border);
+    box-shadow: 0 0 15px rgba(255, 56, 56, 0.2);
+    transition: all 0.3s ease;
+}
+
+.theme-ironman .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.2);
+}
+
+.theme-ironman .card-header {
+    background-color: var(--theme-dark);
+    color: var(--theme-secondary);
+    border-bottom: 2px solid var(--theme-secondary);
+}
+
+.theme-ironman .btn-primary {
+    background-color: var(--theme-primary);
+    border-color: var(--theme-secondary);
+    color: var(--theme-secondary);
+    font-weight: bold;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+    animation: arcReactor 2s infinite;
+}
+
+.theme-ironman .btn-primary:hover {
+    background-color: var(--theme-secondary);
+    border-color: var(--theme-secondary);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+}
+
+.theme-ironman .btn-secondary {
+    background-color: var(--theme-secondary);
+    border-color: var(--theme-primary);
+    color: var(--theme-dark);
+    font-weight: bold;
+}
+
+.theme-ironman .form-control {
+    background-color: rgba(153, 0, 0, 0.2);
+    border: 2px solid var(--theme-border);
+    color: var(--theme-text);
+}
+
+.theme-ironman .form-control:focus {
+    background-color: #505050;
+    border-color: var(--theme-primary);
+    color: var(--theme-text);
+    box-shadow: 0 0 0 0.2rem rgba(255, 56, 56, 0.25);
+}
+
+.theme-ironman .form-select {
+    background-color: #404040;
+    border: 2px solid var(--theme-border);
+    color: var(--theme-text);
+}
+
+.theme-ironman .form-select:focus {
+    border-color: var(--theme-primary);
+    box-shadow: 0 0 0 0.2rem rgba(255, 56, 56, 0.25);
+}
+
+.theme-ironman .table {
+    color: var(--theme-text);
+    --bs-table-bg: rgba(153, 0, 0, 0.3);
+    --bs-table-striped-bg: rgba(153, 0, 0, 0.4);
+    --bs-table-hover-bg: rgba(153, 0, 0, 0.5);
+    --bs-table-border-color: var(--theme-border);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.theme-ironman .table thead th {
+    background-color: var(--theme-dark);
+    color: var(--theme-secondary) !important;
+    border-bottom: 2px solid var(--theme-secondary);
+}
+
+.theme-ironman .table tbody tr:hover {
+    background-color: rgba(255, 56, 56, 0.1);
+}
+
+.theme-ironman .text-muted {
+    color: #D0D0D0 !important;
+}
+
+.theme-ironman .card-title {
+    color: var(--theme-secondary) !important;
+    font-weight: bold;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+.theme-ironman .alert {
+    background-color: var(--theme-card-bg);
+    border-left: 4px solid var(--theme-primary);
+    color: var(--theme-text);
+    box-shadow: 0 0 10px rgba(255, 56, 56, 0.1);
+}
+
+/* Iron Man theme animations */
+@keyframes arcReactor {
+    0% { box-shadow: 0 0 15px rgba(255, 215, 0, 0.3); }
+    50% { box-shadow: 0 0 30px rgba(255, 215, 0, 0.6); }
+    100% { box-shadow: 0 0 15px rgba(255, 215, 0, 0.3); }
+}
+
+@keyframes repulsorCharge {
+    0% { opacity: 0.4; transform: scale(0.95); }
+    50% { opacity: 0.8; transform: scale(1.05); }
+    100% { opacity: 0.4; transform: scale(0.95); }
+}
+
+/* Background doodle */
+.theme-ironman::before {
+    content: '';
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: 400px;
+    height: 400px;
+    background-image: url('/static/images/doodles/ironman/doodle.svg');
+    background-size: contain;
+    background-repeat: no-repeat;
+    opacity: 0.05;
+    z-index: -1;
+    animation: repulsorCharge 4s infinite;
+    pointer-events: none;
+}
+
+/* Arc reactor in header */
+.theme-ironman .navbar-brand::before {
+    content: '⚡';
+    margin-right: 8px;
+    display: inline-block;
+    animation: arcReactor 2s infinite;
+}
+
+/* Add these new animations */
+@keyframes reactorPulse {
+    0% { transform: translate(-50%, -50%) scale(1); filter: brightness(1); }
+    50% { transform: translate(-50%, -50%) scale(1.1); filter: brightness(1.3); }
+    100% { transform: translate(-50%, -50%) scale(1); filter: brightness(1); }
+}
+
+@keyframes energyBeam {
+    0% { opacity: 0.3; transform: translate(-50%, -50%) rotate(0deg); }
+    50% { opacity: 0.6; transform: translate(-50%, -50%) rotate(180deg); }
+    100% { opacity: 0.3; transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+.theme-ironman::before {
+    /* Update existing doodle animation */
+    animation: reactorPulse 4s infinite ease-in-out,
+              energyBeam 8s infinite linear;
+}
+
+/* Text colors in dark backgrounds */
+.theme-ironman .table,
+.theme-ironman .table td,
+.theme-ironman .table th,
+.theme-ironman .table .text-muted,
+.theme-ironman .table .text-gray-800,
+.theme-ironman .table small,
+.theme-ironman [class*="bg-dark"] {
+    color: #FFFFFF !important;
+}
+
+/* Muted text styling */
+.theme-ironman .text-muted {
+    --bs-text-opacity: 0.75;
+    color: #FFFFFF !important;
+}
+
+.theme-ironman .card .text-muted,
+.theme-ironman .modal .text-muted,
+.theme-ironman small.text-muted {
+    --bs-text-opacity: 0.85;
+    color: #FFFFFF !important;
+}
+
+/* Form labels and text */
+.theme-ironman .form-label,
+.theme-ironman .card-text,
+.theme-ironman h6.m-0.font-weight-bold,
+.theme-ironman label,
+.theme-ironman p {
+    color: var(--theme-text) !important;
+}
+
+/* Form check labels */
+.theme-ironman .form-check-label {
+    color: var(--theme-text) !important;
+}
+
+.theme-ironman label[for="test_mode"] {
+    color: var(--theme-text) !important;
+}
+
+.theme-ironman .form-check,
+.theme-ironman .form-check-input + label,
+.theme-ironman .form-check-label {
+    color: var(--theme-text) !important;
+}
+
+/* Input fields and placeholders */
+.theme-ironman .form-control {
+    background-color: #333333;
+    border-color: var(--theme-border);
+    color: var(--theme-text) !important;
+}
+
+.theme-ironman .form-control::placeholder {
+    color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* Search input specific */
+.theme-ironman #searchInput,
+.theme-ironman #searchInput::placeholder {
+    color: var(--theme-text) !important;
+}
+
+/* Project name input specific */
+.theme-ironman #project_name,
+.theme-ironman #project_name::placeholder {
+    color: var(--theme-text) !important;
+}
+
+/* Recent Templates heading */
+.theme-ironman h6.m-0.font-weight-bold {
+    color: var(--theme-text) !important;
+}
+
+/* Card text and paragraphs */
+.theme-ironman .card-text,
+.theme-ironman p {
+    color: var(--theme-text) !important;
+}
+
+/* Any text in dark backgrounds */
+.theme-ironman [style*="background-color: #1A1A1A"],
+.theme-ironman [style*="background-color: #2D2D2D"],
+.theme-ironman [style*="background: #1A1A1A"],
+.theme-ironman [style*="background: #2D2D2D"] {
+    color: #FFFFFF !important;
+}
+
+/* Table text styling */
+.theme-ironman .table tbody td,
+.theme-ironman .table tbody th,
+.theme-ironman .table tbody tr {
+    color: var(--theme-text) !important;
+}
+
+/* Table header text */
+.theme-ironman .table thead th {
+    color: var(--theme-secondary) !important;
+}
+
+/* Muted text in tables */
+.theme-ironman .table .text-muted,
+.theme-ironman .table small {
+    --bs-text-opacity: 0.85;
+    color: #FFFFFF !important;
+}
+
+/* Card titles */
+.theme-ironman .card-title,
+.theme-ironman h5.card-title,
+.theme-ironman .card-body .card-title {
+    color: var(--theme-text) !important;
+}
+
+/* Email address card titles */
+.theme-ironman h5.card-title.mb-2 {
+    color: var(--theme-text) !important;
+}
+
+/* Override any previous card-title styles */
+.theme-ironman .card-title {
+    text-shadow: none;  /* Remove any existing text shadow */
+}
+
+.theme-ironman .nav-link.active {
+    background-color: var(--theme-secondary) !important;
+    color: var(--theme-dark) !important;
+}
+
+/* Iron Man character animation */
+@keyframes ironmanFly {
+    0% { 
+        transform: translate(-100%, 100%) rotate(-30deg) scale(0.1);
+        opacity: 0;
+        filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.3));
+    }
+    20% { 
+        transform: translate(50%, 50%) rotate(0deg) scale(2);
+        opacity: 1;
+        filter: drop-shadow(0 0 40px rgba(255, 215, 0, 0.8));
+    }
+    40% {
+        transform: translate(45%, 45%) rotate(360deg) scale(3);
+        opacity: 1;
+        filter: drop-shadow(0 0 60px rgba(255, 56, 56, 0.8));
+    }
+    60% {
+        transform: translate(55%, 55%) rotate(720deg) scale(2);
+        opacity: 1;
+        filter: drop-shadow(0 0 40px rgba(255, 215, 0, 0.8));
+    }
+    80% {
+        transform: translate(50%, 50%) rotate(1080deg) scale(1);
+        opacity: 0.8;
+        filter: drop-shadow(0 0 20px rgba(255, 56, 56, 0.5));
+    }
+    100% { 
+        transform: translate(200%, -100%) rotate(1440deg) scale(0.1);
+        opacity: 0;
+    }
+}
+
+.theme-character-ironman {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    font-size: 64px;
+    transform: translate(-50%, -50%);
+    animation: ironmanFly 5s ease-in-out forwards;
+    z-index: 9999;
+    pointer-events: none;
+}
+
+.theme-character-ironman::before {
+    content: '🚀';
+}
+
+/* Gmail count styling */
+.theme-ironman .h5.mb-0.font-weight-bold.text-gray-800 {
+    color: var(--theme-text) !important;
+}
+
+/* Debug buttons in Iron Man theme */
+.theme-ironman.debug-mode .position-fixed.bottom-0.start-0 {
+    left: 250px !important;
+    margin-left: 0 !important;
+}
+
+.theme-ironman .position-fixed.bottom-0.start-0 .btn {
+    background-color: var(--theme-dark);
+    border-color: var(--theme-primary);
+    color: var(--theme-primary);
+} 

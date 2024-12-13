@@ -1,0 +1,6 @@
+template_name,sender_email,name,email,company,position,department,start_date,manager_name,project,office_location,team_size,salary_band
+sujay,sujay@vellichormedia.com,John Doe,sujay@vellichormedia.com,ACME Inc,Software Engineer,Engineering,1/15/2024,Sarah Johnson,Project X,New York,8,B4
+sujay,sujay@vellichormedia.com,John Doe,sujay@vellichormedia.com,ACME Inc,Software Engineer,Engineering,1/15/2024,Sarah Johnson,Project X,New York,8,B4
+sujay,sujay@vellichormedia.com,John Doe,sujay@vellichormedia.com,ACME Inc,Software Engineer,Engineering,1/15/2024,Sarah Johnson,Project X,New York,8,B4
+sujay,sujay@vellichormedia.com,John Doe,sujay@vellichormedia.com,ACME Inc,Software Engineer,Engineering,1/15/2024,Sarah Johnson,Project X,New York,8,B4
+sujay,clara@specials.grcoutlookmag.com,John Doe,sujay@vellichormedia.com,ACME Inc,Software Engineer,Engineering,1/15/2024,Sarah Johnson,Project X,New York,8,B4

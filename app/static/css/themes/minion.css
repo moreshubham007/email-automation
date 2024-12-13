@@ -1,0 +1,796 @@
+/* Theme variables */
+.theme-minion {
+    --theme-primary: #FFE03D;
+    --theme-secondary: #4AA2D9;
+    --theme-dark: #29739D;
+    --theme-accent: #424242;
+    --theme-background: #0C4E7C;
+    --theme-text: #222f3e;
+    --theme-card-bg: #fff;
+    --theme-border: #eee;
+    
+    /* Apply theme styles */
+    background-color: var(--theme-background);
+    color: var(--theme-text);
+    font-family: 'Helvetica Rounded', 'Arial Rounded MT Bold', sans-serif;
+    position: relative;
+    overflow-x: hidden;
+    width: 100%;
+    height: 100%;
+}
+
+.theme-minion #sidebar {
+    background-color: var(--theme-primary) !important;  /* Minion yellow */
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+    min-width: 250px;
+    max-width: 250px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    z-index: 999;
+}
+
+.theme-minion .card {
+    background-color: var(--theme-card-bg);
+    border-color: var(--theme-border);
+    position: relative;
+    width: 100%;
+}
+
+.theme-minion .btn-primary {
+    background-color: var(--theme-primary);
+    border-color: var(--theme-dark);
+    color: var(--theme-text);
+    transition: all 0.3s ease;
+}
+
+.theme-minion .btn-secondary {
+    background-color: var(--theme-secondary);
+    border-color: var(--theme-dark);
+    color: #ffffff;
+}
+
+.theme-minion .theme-logo {
+    background-color: var(--theme-primary);
+    border-radius: 15px;
+    padding: 15px;
+}
+
+/* Background doodle */
+.theme-minion::before {
+    content: '';
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: 300px;
+    height: 300px;
+    background-image: url('/static/images/doodles/minion/doodle.svg');
+    background-size: contain;
+    background-repeat: no-repeat;
+    opacity: 0.05;
+    z-index: -1;
+    animation: goggleWobble 6s infinite ease-in-out;
+    pointer-events: none;
+}
+
+/* Animated elements */
+.theme-minion .btn {
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.theme-minion .btn:hover {
+    animation: wobble 0.5s ease;
+}
+
+/* Banana in header */
+.theme-minion .navbar-brand::before {
+    content: '🍌';
+    margin-right: 8px;
+    display: inline-block;
+    animation: wobble 2s infinite;
+}
+
+/* Minion theme animations */
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+@keyframes wobble {
+    0%, 100% { transform: rotate(-3deg); }
+    50% { transform: rotate(3deg); }
+}
+
+@keyframes goggleWobble {
+    0% { transform: translate(-50%, -50%) rotate(0deg) scale(1); }
+    25% { transform: translate(-52%, -48%) rotate(-5deg) scale(1.05); }
+    50% { transform: translate(-50%, -52%) rotate(0deg) scale(1); }
+    75% { transform: translate(-48%, -48%) rotate(5deg) scale(1.05); }
+    100% { transform: translate(-50%, -50%) rotate(0deg) scale(1); }
+}
+
+@keyframes reflectionShine {
+    0% { opacity: 0.7; }
+    50% { opacity: 1; }
+    100% { opacity: 0.7; }
+}
+
+.theme-minion .card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.1),
+        transparent
+    );
+    animation: reflectionShine 3s infinite;
+}
+
+/* Update heading styles */
+.theme-minion h1,
+.theme-minion h2,
+.theme-minion h3,
+.theme-minion h4,
+.theme-minion h5,
+.theme-minion h6,
+.theme-minion .h1,
+.theme-minion .h2,
+.theme-minion .h3,
+.theme-minion .h4,
+.theme-minion .h5,
+.theme-minion .h6 {
+    color: #FFFFFF !important;  /* Force white color */
+}
+
+/* Specifically target page headings */
+.theme-minion .h3.mb-4,  /* Common page heading class */
+.theme-minion .card-header h5,
+.theme-minion .modal-title,
+.theme-minion .card-title {
+    color: #FFFFFF !important;
+}
+
+/* Update text colors to dark */
+.theme-minion .text-gray-800,
+.theme-minion .text-dark {
+    color: #333333 !important;  /* Dark text */
+}
+
+/* Make sure text is dark in light backgrounds */
+.theme-minion .card .text-gray-800,
+.theme-minion .card .text-dark,
+.theme-minion [class*="bg-white"] .text-gray-800,
+.theme-minion [class*="bg-white"] .text-dark,
+.theme-minion .bg-light .text-gray-800,
+.theme-minion .bg-light .text-dark {
+    color: #333333 !important;
+}
+
+/* Keep text white only in dark backgrounds */
+.theme-minion .bg-dark .text-gray-800,
+.theme-minion .bg-dark .text-dark {
+    color: #FFFFFF !important;
+}
+
+/* Make sure page titles are white */
+.theme-minion .page-title,
+.theme-minion .section-title,
+.theme-minion [class*="heading"] {
+    color: #FFFFFF !important;
+}
+
+/* Update table styling */
+.theme-minion .table {
+    color: #333333;                          /* Dark text */
+    --bs-table-bg: #FFFFFF;                  /* White background */
+    --bs-table-striped-bg: #F8F9FA;         /* Light gray for stripes */
+    --bs-table-hover-bg: #E9ECEF;           /* Light gray for hover */
+    --bs-table-border-color: #DEE2E6;        /* Light border */
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.theme-minion .table thead {
+    background-color: var(--theme-dark);     /* Minion blue header */
+}
+
+.theme-minion .table thead th {
+    background-color: var(--theme-dark) !important;  /* Minion blue */
+    color: #FFFFFF;                                  /* White text */
+    border-bottom: 2px solid var(--theme-primary);   /* Yellow border */
+    font-weight: bold;
+    padding: 12px 15px;                             /* Add some padding */
+}
+
+.theme-minion .table tbody tr {
+    border-color: #DEE2E6;
+}
+
+.theme-minion .table td {
+    color: #333333;                          /* Dark text */
+    border-color: #DEE2E6;
+}
+
+/* Card style for table container */
+.theme-minion .table-responsive {
+    background-color: #FFFFFF;
+    border-radius: 15px;
+    padding: 1px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    position: relative;
+}
+
+/* Remove any background colors that might override */
+.theme-minion .table-striped > tbody > tr:nth-of-type(odd) > * {
+    --bs-table-accent-bg: var(--bs-table-striped-bg);
+}
+
+.theme-minion .table-hover > tbody > tr:hover > * {
+    --bs-table-accent-bg: var(--bs-table-hover-bg);
+}
+
+/* Update card header title styles */
+.theme-minion .card-header h5,
+.theme-minion .card-header .mb-0,
+.theme-minion .card-title {
+    color: #333333 !important;  /* Dark text for card headers */
+}
+
+/* Keep other headings white except in cards/white backgrounds */
+.theme-minion h1:not(.card-title):not(.mb-0):not([class*="bg-white"]),
+.theme-minion h2:not(.card-title):not(.mb-0):not([class*="bg-white"]),
+.theme-minion h3:not(.card-title):not(.mb-0):not([class*="bg-white"]),
+.theme-minion h4:not(.card-title):not(.mb-0):not([class*="bg-white"]),
+.theme-minion h5:not(.card-title):not(.mb-0):not([class*="bg-white"]),
+.theme-minion h6:not(.card-title):not(.mb-0):not([class*="bg-white"]),
+.theme-minion .h3.mb-4:not([class*="bg-white"]) {  /* Page title */
+    color: #FFFFFF !important;
+}
+
+/* Make headings in white/light backgrounds black */
+.theme-minion .card h1,
+.theme-minion .card h2,
+.theme-minion .card h3,
+.theme-minion .card h4,
+.theme-minion .card h5,
+.theme-minion .card h6,
+.theme-minion .card .h3,
+.theme-minion [class*="bg-white"] h1,
+.theme-minion [class*="bg-white"] h2,
+.theme-minion [class*="bg-white"] h3,
+.theme-minion [class*="bg-white"] h4,
+.theme-minion [class*="bg-white"] h5,
+.theme-minion [class*="bg-white"] h6,
+.theme-minion [class*="bg-white"] .h3 {
+    color: #333333 !important;
+}
+
+/* Ensure card headers have proper contrast */
+.theme-minion .card-header {
+    background-color: var(--theme-dark);  /* Minion blue */
+    border-bottom: 2px solid var(--theme-primary);  /* Yellow border */
+}
+
+/* Update text colors for light backgrounds */
+.theme-minion .card,
+.theme-minion .modal-content,
+.theme-minion .dropdown-menu,
+.theme-minion .alert-light,
+.theme-minion .bg-white,
+.theme-minion [class*="bg-light"] {
+    color: #333333 !important;
+}
+
+/* Update text in white/light cards */
+.theme-minion .card {
+    background-color: var(--theme-card-bg);
+    color: #333333;
+}
+
+.theme-minion .card-body {
+    color: #333333;
+}
+
+.theme-minion .card-text,
+.theme-minion .card-body p,
+.theme-minion .card-body span:not(.badge),
+.theme-minion .card-body div:not(.badge) {
+    color: #333333;
+}
+
+/* Form labels in light backgrounds */
+.theme-minion .card label,
+.theme-minion .card .form-label,
+.theme-minion .modal label,
+.theme-minion .modal .form-label {
+    color: #333333;
+}
+
+/* List items in light backgrounds */
+.theme-minion .card .list-group-item,
+.theme-minion .modal .list-group-item {
+    color: #333333;
+}
+
+/* Small text and muted text in light backgrounds */
+.theme-minion .card .text-muted,
+.theme-minion .card small,
+.theme-minion .modal .text-muted,
+.theme-minion .modal small {
+    color: #666666 !important;
+}
+
+/* Links in light backgrounds */
+.theme-minion .card a:not(.btn),
+.theme-minion .modal a:not(.btn) {
+    color: var(--theme-dark);
+}
+
+/* Description text in light backgrounds */
+.theme-minion .card .description,
+.theme-minion .modal .description {
+    color: #333333;
+}
+
+/* Form text in light backgrounds */
+.theme-minion .card .form-text,
+.theme-minion .modal .form-text {
+    color: #666666;
+}
+
+/* Make sure the header background color isn't overridden */
+.theme-minion .table > :not(caption) > * > * {
+    background-color: inherit;
+}
+
+/* Add a subtle transition for hover states */
+.theme-minion .table thead th:hover {
+    background-color: #1E5F8B;                      /* Slightly lighter blue on hover */
+}
+
+/* Update card header text color */
+.theme-minion .card-header h5,
+.theme-minion .card-header .mb-0,
+.theme-minion .card-header .card-title {
+    color: #FFFFFF !important;  /* White text for dark background */
+}
+
+/* Add subtle shadow for depth */
+.theme-minion .card {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Update specific h6 styling for all cases */
+.theme-minion h6.mb-1,
+.theme-minion .h6.mb-1,
+.theme-minion .list-group-item h6.mb-1,
+.theme-minion h6.mb-1:not([class*="bg-white"]) {
+    color: #333333 !important;  /* Dark text */
+}
+
+/* Make sure it's black in all contexts */
+.theme-minion .list-group h6.mb-1,
+.theme-minion .list-group-item h6.mb-1,
+.theme-minion .card h6.mb-1,
+.theme-minion [class*="bg-white"] h6.mb-1,
+.theme-minion .bg-light h6.mb-1,
+.theme-minion h6.mb-1:not(.text-white) {
+    color: #333333 !important;
+}
+
+/* Ensure email addresses and names are black */
+.theme-minion .list-group-item h6.mb-1,
+.theme-minion h6.mb-1:contains("@"),
+.theme-minion h6.mb-1:not(:empty) {
+    color: #333333 !important;
+}
+
+/* Update heading styles for specific cases */
+.theme-minion h6.m-0.font-weight-bold {
+    color: #333333 !important;  /* Dark text for "Recent Templates" */
+}
+
+/* Keep other headings black */
+.theme-minion h1:not(.card-title):not(.mb-0):not([class*="bg-white"]),
+.theme-minion h2:not(.card-title):not(.mb-0):not([class*="bg-white"]),
+.theme-minion h3:not(.card-title):not(.mb-0):not([class*="bg-white"]),
+.theme-minion h4:not(.card-title):not(.mb-0):not([class*="bg-white"]),
+.theme-minion h5:not(.card-title):not(.mb-0):not([class*="bg-white"]),
+.theme-minion h6:not(.card-title):not(.mb-0):not([class*="bg-white"]):not(.m-0),
+.theme-minion .h3.mb-4:not([class*="bg-white"]) {
+    color: #333333 !important;  /* Dark text */
+}
+
+/* Additional specific case for font-weight-bold headings */
+.theme-minion h6.font-weight-bold,
+.theme-minion .h6.font-weight-bold {
+    color: #333333 !important;
+}
+
+/* Sidebar text and links */
+.theme-minion #sidebar .nav-link {
+    color: var(--theme-dark) !important;  /* Dark blue text */
+    font-weight: 600;
+}
+
+.theme-minion #sidebar .nav-link:hover {
+    background-color: #FFE854;  /* Slightly lighter yellow */
+    color: var(--theme-dark) !important;
+}
+
+/* Sidebar header */
+.theme-minion .sidebar-header {
+    border-bottom: 2px solid var(--theme-dark);
+}
+
+.theme-minion .sidebar-header h3 {
+    color: var(--theme-dark) !important;
+    font-weight: bold;
+}
+
+/* Active link */
+.theme-minion #sidebar .nav-link.active {
+    background-color: var(--theme-dark);
+    color: var(--theme-primary) !important;
+}
+
+/* Sidebar icons */
+.theme-minion #sidebar .bi {
+    color: var(--theme-dark);
+}
+
+/* User info in sidebar */
+.theme-minion #sidebar .text-light {
+    color: var(--theme-dark) !important;
+}
+
+/* Theme selector in sidebar */
+.theme-minion .theme-selector h6 {
+    color: var(--theme-dark) !important;
+}
+
+/* Logout button */
+.theme-minion #sidebar .btn-outline-light {
+    color: var(--theme-dark);
+    border-color: var(--theme-dark);
+}
+
+.theme-minion #sidebar .btn-outline-light:hover {
+    background-color: var(--theme-dark);
+    color: var(--theme-primary);
+}
+
+/* Page titles and main headings - White */
+.theme-minion h1:not(.card-title):not(.mb-0):not([class*="bg-white"]),
+.theme-minion h2:not(.card-title):not(.mb-0):not([class*="bg-white"]),
+.theme-minion h3:not(.card-title):not(.mb-0):not([class*="bg-white"]),
+.theme-minion .h3.mb-4:not([class*="bg-white"]) {
+    color: #FFFFFF !important;  /* White text */
+}
+
+/* Secondary headings - Dark */
+.theme-minion h4:not(.card-title):not(.mb-0):not([class*="bg-white"]),
+.theme-minion h5:not(.card-title):not(.mb-0):not([class*="bg-white"]),
+.theme-minion h6:not(.card-title):not(.mb-0):not([class*="bg-white"]):not(.m-0) {
+    color: #333333 !important;  /* Dark text */
+}
+
+/* Main page headings - White */
+.theme-minion h1.h3.mb-0.text-gray-800,
+.theme-minion .h3.mb-0.text-gray-800,
+.theme-minion h1:not(.card-title):not([class*="bg-white"]),
+.theme-minion h2:not(.card-title):not([class*="bg-white"]),
+.theme-minion h3:not(.card-title):not([class*="bg-white"]),
+.theme-minion .h3.mb-4:not([class*="bg-white"]) {
+    color: #FFFFFF !important;  /* White text */
+}
+
+/* Override any text-gray-800 class when used in main headings */
+.theme-minion h1.text-gray-800,
+.theme-minion .h3.text-gray-800 {
+    color: #FFFFFF !important;
+}
+
+/* Download logs button styling */
+.theme-minion .btn-outline-secondary {
+    color: #FFFFFF !important;
+    border-color: #FFFFFF;
+    background-color: transparent;
+}
+
+/* Hover state */
+.theme-minion .btn-outline-secondary:hover {
+    color: var(--theme-dark) !important;
+    background-color: #FFFFFF;
+    border-color: #FFFFFF;
+}
+
+/* Icon color */
+.theme-minion .btn-outline-secondary .bi {
+    color: inherit;
+}
+
+/* Minion character animation */
+@keyframes minionJump {
+    0% { 
+        transform: translate(-100%, 100%) scale(0.1);
+        opacity: 0;
+    }
+    20% { 
+        transform: translate(50%, 50%) scale(2);
+        opacity: 1;
+    }
+    40% { 
+        transform: translate(50%, 30%) rotate(-360deg) scale(3);
+        opacity: 1;
+    }
+    60% { 
+        transform: translate(50%, 50%) rotate(360deg) scale(2);
+        opacity: 1;
+    }
+    80% { 
+        transform: translate(50%, 30%) rotate(-360deg) scale(1);
+        opacity: 0.8;
+    }
+    100% { 
+        transform: translate(200%, 100%) rotate(360deg) scale(0.1);
+        opacity: 0;
+    }
+}
+
+.theme-character-minion {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    font-size: 64px;
+    transform: translate(-50%, -50%);
+    animation: minionJump 6s ease-in-out forwards; /* Add forwards to keep final state */
+    z-index: 9999;
+    pointer-events: none;
+}
+
+.theme-character-minion::before {
+    content: '🍌';
+}
+
+/* Tooltip styling */
+.theme-tooltip {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 4px;
+    z-index: 10000;
+    animation: fadeOut 3s forwards;
+}
+
+@keyframes fadeOut {
+    0% { opacity: 1; }
+    70% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+/* Fix positioning and alignment issues */
+.theme-minion {
+    --theme-primary: #FFE03D;
+    --theme-secondary: #4AA2D9;
+    --theme-dark: #29739D;
+    --theme-accent: #424242;
+    --theme-background: #0C4E7C;
+    --theme-text: #222f3e;
+    --theme-card-bg: #fff;
+    --theme-border: #eee;
+    
+    /* Fix positioning */
+    position: relative;
+    overflow-x: hidden;
+    width: 100%;
+    height: 100%;
+}
+
+/* Fix wrapper alignment */
+.theme-minion .wrapper {
+    display: flex;
+    width: 100%;
+    align-items: stretch;
+    position: relative;
+}
+
+/* Fix content alignment */
+.theme-minion #content {
+    width: calc(100% - 250px);  /* Full width minus sidebar */
+    margin-left: 250px;         /* Push content right of sidebar */
+    padding: 20px;
+    min-height: 100vh;
+    transition: all 0.3s;
+    position: relative;
+    z-index: 1;                 /* Ensure content is above background */
+}
+
+/* Fix sidebar positioning */
+.theme-minion #sidebar {
+    min-width: 250px;
+    max-width: 250px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    z-index: 2;                /* Higher than content but lower than modals */
+    background-color: var(--theme-primary) !important;
+}
+
+/* Fix main content margin */
+.theme-minion.wrapper #content {
+    margin-left: 0;           /* Remove duplicate margin */
+}
+
+/* Fix card positioning */
+.theme-minion .card {
+    position: relative;
+    width: 100%;
+}
+
+/* Fix button positioning */
+.theme-minion .btn {
+    position: relative;
+}
+
+/* Fix modal positioning */
+.theme-minion .modal {
+    position: fixed;
+    z-index: 1050;            /* Higher than sidebar */
+}
+
+/* Fix dropdown positioning */
+.theme-minion .dropdown-menu {
+    position: absolute;
+}
+
+/* Fix table responsiveness */
+.theme-minion .table-responsive {
+    width: 100%;
+    position: relative;
+}
+
+/* Fix file input positioning */
+.theme-minion .custom-file,
+.theme-minion input[type="file"],
+.theme-minion .form-control[type="file"] {
+    position: relative;
+    z-index: 1;
+}
+
+/* Fix file input button positioning */
+.theme-minion input[type="file"]::file-selector-button,
+.theme-minion .form-control[type="file"]::file-selector-button {
+    position: relative;
+    margin-right: 1rem;
+    padding: 0.375rem 0.75rem;
+    border-radius: 0.25rem;
+    background-color: var(--theme-primary);
+    border: 1px solid var(--theme-dark);
+    color: var(--theme-dark);
+    cursor: pointer;
+}
+
+/* Hover state for file input button */
+.theme-minion input[type="file"]::file-selector-button:hover,
+.theme-minion .form-control[type="file"]::file-selector-button:hover {
+    background-color: #FFE854;
+}
+
+/* Fix file input text color */
+.theme-minion input[type="file"],
+.theme-minion .form-control[type="file"] {
+    color: var(--theme-text);
+}
+
+/* Fix file input container */
+.theme-minion .input-group > .form-control[type="file"] {
+    position: relative;
+    flex: 1 1 auto;
+    width: 1%;
+    min-width: 0;
+}
+
+/* Fix number input positioning */
+.theme-minion input[type="number"],
+.theme-minion .form-control[type="number"] {
+    position: relative;
+    z-index: 1;
+    padding: 0.375rem 0.75rem;
+    background-color: #FFFFFF;
+    border: 1px solid var(--theme-border);
+    border-radius: 0.25rem;
+    color: var(--theme-dark);
+}
+
+/* Fix number input spinners */
+.theme-minion input[type="number"]::-webkit-inner-spin-button,
+.theme-minion input[type="number"]::-webkit-outer-spin-button {
+    opacity: 1;
+    position: relative;
+    right: 4px;
+    height: 26px;
+    cursor: pointer;
+    background: var(--theme-primary);
+    border-left: 1px solid var(--theme-border);
+}
+
+/* Fix number input focus */
+.theme-minion input[type="number"]:focus,
+.theme-minion .form-control[type="number"]:focus {
+    border-color: var(--theme-primary);
+    box-shadow: 0 0 0 0.2rem rgba(255, 224, 61, 0.25);
+    outline: none;
+}
+
+/* Fix number input in input groups */
+.theme-minion .input-group > .form-control[type="number"] {
+    position: relative;
+    flex: 1 1 auto;
+    width: 1%;
+    min-width: 0;
+}
+
+/* Fix number input label alignment */
+.theme-minion label + input[type="number"],
+.theme-minion .form-label + .form-control[type="number"] {
+    margin-top: 0.25rem;
+}
+
+/* Hide debug buttons in production */
+.theme-minion .position-fixed.bottom-0.start-0 {
+    display: none !important;  /* Hide completely */
+}
+
+/* Only show in debug mode */
+.theme-minion.debug-mode .position-fixed.bottom-0.start-0 {
+    display: flex !important;
+    z-index: 1000;
+    left: 250px !important;
+    margin-left: 0 !important;
+}
+
+/* Style debug buttons */
+.theme-minion .position-fixed.bottom-0.start-0 .btn {
+    background-color: var(--theme-card-bg);
+    border-color: var(--theme-dark);
+    color: var(--theme-dark);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin: 10px;  /* Add some spacing between buttons */
+}
+
+/* Hover state for debug buttons */
+.theme-minion .position-fixed.bottom-0.start-0 .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Container for debug buttons */
+.theme-minion .position-fixed.bottom-0.start-0.m-3 {
+    margin: 1rem !important;  /* Keep consistent margin */
+}
+
+/* Specific colors for crash test button */
+.theme-minion .position-fixed.bottom-0.start-0 .btn-danger {
+    background-color: #dc3545;
+    color: #FFFFFF;
+}
+
+/* Specific colors for task manager button */
+.theme-minion .position-fixed.bottom-0.start-0 .btn-warning {
+    background-color: #ffc107;
+    color: #000000;
+}

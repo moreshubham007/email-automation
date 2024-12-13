@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}Project Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="h3 mb-4">Project Management</h1>
+    
+    <!-- Add Project Section -->
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Add New Project</h5>
+            <button class="btn btn-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#addProjectForm">
+                <i class="bi bi-plus-circle me-1"></i>New Project
+            </button>
+        </div>
+        <div class="collapse" id="addProjectForm">
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data">
+                    {{ form.csrf_token }}
+                    <div class="mb-3">
+                        {{ form.project_name.label(class="form-label") }}
+                        {{ form.project_name(class="form-control", placeholder="Enter project name") }}
+                        {% if form.project_name.errors %}
+                            {% for error in form.project_name.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.description.label(class="form-label") }}
+                        {{ form.description(class="form-control", rows="2", placeholder="Optional description") }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.client_secret.label(class="form-label") }}
+                        <div class="input-group">
+                            {{ form.client_secret(class="form-control") }}
+                            <button class="btn btn-outline-secondary" type="button" data-bs-toggle="popover" 
+                                    data-bs-placement="top" title="Client Secret File"
+                                    data-bs-content="Download this from Google Cloud Console > APIs & Services > Credentials">
+                                <i class="bi bi-question-circle"></i>
+                            </button>
+                        </div>
+                        {% if form.client_secret.errors %}
+                            {% for error in form.client_secret.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                        <small class="text-muted">Upload the client_secrets.json file from Google Cloud Console</small>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save me-1"></i>Save Project
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Projects List -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Projects</h5>
+        </div>
+        <div class="card-body">
+            {% if projects %}
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Description</th>
+                            <th>Gmail Accounts</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for project in projects %}
+                        <tr>
+                            <td>{{ project.name }}</td>
+                            <td>{{ project.description or '-' }}</td>
+                            <td>
+                                <span class="badge bg-info">
+                                    {{ project.gmail_accounts|length }} accounts
+                                </span>
+                            </td>
+                            <td>{{ project.created_at.strftime('%Y-%m-%d') }}</td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <button class="btn btn-primary" onclick="editProject({{ project.id }})">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button class="btn btn-info" onclick="viewProject({{ project.id }})">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    <button class="btn btn-danger" onclick="deleteProject({{ project.id }})">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-center text-muted my-4">
+                <i class="bi bi-folder fs-2 d-block mb-2"></i>
+                No projects created yet
+            </p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Edit Project Modal -->
+<div class="modal fade" id="editProjectModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Project</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Form will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- View Project Modal -->
+<div class="modal fade" id="viewProjectModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Project Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Project details will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/project_management.js') }}"></script>
+{% endblock %} 

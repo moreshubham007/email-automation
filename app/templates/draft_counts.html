@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Draft Counts{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="h3 mb-4">Gmail Draft Counts</h1>
+
+    <!-- Filters Section -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Project Filter</label>
+                    <select class="form-select" id="projectFilter">
+                        <option value="">All Projects</option>
+                        {% for project in projects %}
+                        <option value="{{ project.id }}">{{ project.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Search Gmail</label>
+                    <input type="text" class="form-control" id="searchInput" placeholder="Search by email...">
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button class="btn btn-primary" id="fetchAllDrafts">
+                        <i class="bi bi-cloud-download me-1"></i>Fetch All Draft Counts
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gmail Accounts Grid -->
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" id="gmailGrid">
+        {% for account in gmail_accounts %}
+        <div class="col" data-project="{{ account.project_id }}">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h5 class="card-title mb-2">{{ account.email }}</h5>
+                        <div class="text-muted small">Project: <span class="badge bg-primary">{{ account.project.name }}</span></div>
+                    </div>
+                    <div class="draft-count-section text-center py-3">
+                        <div class="draft-count display-4" id="count-{{ account.id }}">-</div>
+                        <small class="text-muted">Drafts</small>
+                    </div>
+                    <div class="text-center mt-3">
+                        <button class="btn btn-sm btn-outline-primary fetch-drafts" data-account-id="{{ account.id }}">
+                            <i class="bi bi-arrow-repeat me-1"></i>Fetch Count
+                        </button>
+                        <div class="spinner-border spinner-border-sm text-primary d-none" 
+                             id="spinner-{{ account.id }}" role="status">
+                        </div>
+                    </div>
+                    <div class="mt-2 text-center">
+                        <small class="text-muted" id="lastUpdate-{{ account.id }}">Never updated</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/draft_counts.js') }}"></script>
+{% endblock %} 

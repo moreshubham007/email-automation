@@ -1,0 +1,22 @@
+/* Base styles */
+body {
+    transition: background-color 0.3s, color 0.3s;
+}
+
+/* Theme-independent styles */
+.card {
+    transition: background-color 0.3s, border-color 0.3s;
+}
+
+.btn {
+    transition: background-color 0.3s, border-color 0.3s, color 0.3s;
+}
+
+/* Default fallback styles */
+body:not([class*="theme-"]) {
+    background-color: #f8f9fa;
+    color: #212529;
+}
+
+/* Add more theme-independent styles as needed */
+ 
