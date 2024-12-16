@@ -1,0 +1,5 @@
+# Ignore client_secrets folder
+client_secrets/
+
+# Ignore virtual environment folder
+venv/

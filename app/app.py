@@ -7,6 +7,8 @@ import time
 from datetime import datetime
 import os
 from flask_sqlalchemy import SQLAlchemy
+from app.models import GmailAccount
+from app.routes import refresh_access_token  # Import the refresh function
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///templates.db'
@@ -27,6 +29,18 @@ scheduler_state = {
 
 # Lock for thread-safe operations
 scheduler_lock = threading.Lock()
+
+def refresh_tokens_periodically():
+    while True:
+        with scheduler_lock:
+            gmail_accounts = GmailAccount.query.filter_by(authenticated=True).all()
+            for account in gmail_accounts:
+                refresh_access_token(account)  # Refresh token if needed
+        time.sleep(1800)  # Sleep for 30 minutes
+
+# Start the background thread
+token_refresh_thread = threading.Thread(target=refresh_tokens_periodically, daemon=True)
+token_refresh_thread.start()
 
 def sending_task():
     while True:

@@ -154,26 +154,11 @@ document.addEventListener('DOMContentLoaded', function() {
             const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
             const isValidEmail = emailRegex.test(email);
             
-            // Google domain validation
-            const domain = email.split('@')[1];
-            const googleDomains = ['gmail.com', 'googlemail.com', 'google.com'];
-            const isGoogleDomain = domain && (
-                googleDomains.includes(domain) || 
-                domain.endsWith('.google.com')
-            );
-            
             if (isValidEmail) {
-                if (isGoogleDomain) {
-                    this.classList.remove('is-invalid');
-                    this.classList.add('is-valid');
-                    submitButton.disabled = false;
-                    this.setCustomValidity('');
-                } else {
-                    this.classList.remove('is-valid');
-                    this.classList.add('is-invalid');
-                    submitButton.disabled = true;
-                    this.setCustomValidity('Must be a Google email address');
-                }
+                this.classList.remove('is-invalid');
+                this.classList.add('is-valid');
+                submitButton.disabled = false;
+                this.setCustomValidity('');
             } else {
                 this.classList.remove('is-valid');
                 this.classList.add('is-invalid');

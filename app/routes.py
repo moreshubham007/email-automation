@@ -489,61 +489,73 @@ def authenticate_gmail(account_id):
     account = GmailAccount.query.get_or_404(account_id)
     project = account.project
     
-    # Set up OAuth flow
-    flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
-        project.client_secret_path,
-        scopes=['https://www.googleapis.com/auth/gmail.send',
-                'https://www.googleapis.com/auth/gmail.compose']
-    )
-    
-    # Use request.url_root to get the base URL
-    base_url = request.url_root.rstrip('/')  # Remove trailing slash if present
-    redirect_uri = os.getenv('GOOGLE_OAUTH_REDIRECT_URI')  # Use redirect URI from .env
-    
-    flow.redirect_uri = redirect_uri
-    
-    # Store account_id and redirect_uri in session
-    session['oauth_account_id'] = account_id
-    session['oauth_redirect_uri'] = redirect_uri
-    
-    authorization_url, state = flow.authorization_url(
-        access_type='offline',
-        include_granted_scopes='true',
-        prompt='consent'  # Force consent screen to get refresh token
-    )
-    
-    session['oauth_state'] = state
-    return redirect(authorization_url)
+    # Set up OAuth flow with proper error handling
+    try:
+        flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
+            project.client_secret_path,
+            scopes=['https://www.googleapis.com/auth/gmail.send',
+                    'https://www.googleapis.com/auth/gmail.compose']
+        )
+        
+        # Get the redirect URI from environment or construct it
+        if os.getenv('GOOGLE_OAUTH_REDIRECT_URI'):
+            redirect_uri = os.getenv('GOOGLE_OAUTH_REDIRECT_URI')
+        else:
+            redirect_uri = url_for('main.oauth2callback', _external=True)
+        
+        flow.redirect_uri = redirect_uri
+        
+        # Store necessary data in session
+        session['oauth_account_id'] = account_id
+        session['oauth_redirect_uri'] = redirect_uri
+        
+        authorization_url, state = flow.authorization_url(
+            access_type='offline',
+            include_granted_scopes='true',
+            prompt='consent',  # Force consent screen to get refresh token
+            state=os.urandom(16).hex()  # Add secure state parameter
+        )
+        
+        session['oauth_state'] = state
+        return redirect(authorization_url)
+        
+    except Exception as e:
+        flash(f'Authentication setup failed: {str(e)}', 'error')
+        return redirect(url_for('main.gmail_management'))
 
 @main.route('/oauth2callback')
 def oauth2callback():
-    # Retrieve stored values from session
+    # Verify state and session data
     account_id = session.get('oauth_account_id')
-    redirect_uri = session.get('oauth_redirect_uri')
-    state = session.get('oauth_state')
+    stored_state = session.get('oauth_state')
     
-    if not all([account_id, redirect_uri, state]):
+    if not account_id or not stored_state:
         flash('Authentication session expired or invalid', 'error')
         return redirect(url_for('main.gmail_management'))
     
     account = GmailAccount.query.get_or_404(account_id)
     
     try:
+        # Recreate flow with stored state
         flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
             account.project.client_secret_path,
             scopes=['https://www.googleapis.com/auth/gmail.send',
                    'https://www.googleapis.com/auth/gmail.compose'],
-            state=state
+            state=stored_state
         )
-        flow.redirect_uri = redirect_uri
         
-        # Get authorization code from request
+        # Set the same redirect URI as in the initial request
+        flow.redirect_uri = session.get('oauth_redirect_uri')
+        
+        # Fetch token with full URL including query parameters
         authorization_response = request.url
-        flow.fetch_token(authorization_response=authorization_response)
+        if not request.is_secure:
+            authorization_response = authorization_response.replace('http://', 'https://')
         
+        flow.fetch_token(authorization_response=authorization_response)
         credentials = flow.credentials
         
-        # Save credentials
+        # Store credentials securely
         account.credentials = json.dumps({
             'token': credentials.token,
             'refresh_token': credentials.refresh_token,
@@ -555,17 +567,17 @@ def oauth2callback():
         account.authenticated = True
         db.session.commit()
         
+        # Clear sensitive session data
+        session.pop('oauth_account_id', None)
+        session.pop('oauth_state', None)
+        session.pop('oauth_redirect_uri', None)
+        
         flash('Gmail account authenticated successfully!', 'success')
+        return redirect(url_for('main.gmail_management'))
         
     except Exception as e:
         flash(f'Authentication failed: {str(e)}', 'error')
-    
-    # Clean up session
-    session.pop('oauth_account_id', None)
-    session.pop('oauth_redirect_uri', None)
-    session.pop('oauth_state', None)
-    
-    return redirect(url_for('main.gmail_management'))
+        return redirect(url_for('main.gmail_management'))
 
 def create_gmail_draft(sender, recipient, subject, body):
     """Create a draft email using Gmail API"""

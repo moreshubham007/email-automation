@@ -29,42 +29,20 @@ class TemplateForm(FlaskForm):
 
 class SingleGmailForm(FlaskForm):
     project = SelectField('Project', coerce=int, validators=[DataRequired()])
-    email = StringField('Gmail Address', validators=[
+    email = StringField('Email Address', validators=[
         DataRequired(),
         Email(message='Must be a valid email address')
     ])
     description = TextAreaField('Description')
 
     def validate_email(self, field):
-        """Custom validator for Google email addresses"""
+        """Custom validator for email addresses"""
         email = field.data.lower()
         
-        # List of valid Google email domains
-        google_domains = [
-            'gmail.com',
-            'googlemail.com',
-            'google.com'
-        ]
-        
-        # Check if it's a standard Gmail address
-        domain = email.split('@')[-1]
-        
-        # Check if it's a Google Workspace domain
-        is_google_workspace = False
-        try:
-            # You might want to add actual Google Workspace domain verification here
-            # For now, we'll just check MX records
-            import dns.resolver
-            mx_records = dns.resolver.resolve(domain, 'MX')
-            for mx in mx_records:
-                if 'google' in str(mx.exchange).lower():
-                    is_google_workspace = True
-                    break
-        except:
-            pass
-
-        if domain not in google_domains and not is_google_workspace:
-            raise ValidationError('Must be a valid Google email address (Gmail or Google Workspace)')
+        # Basic email validation is already handled by the Email validator
+        # No need for additional domain checks
+        if not email:
+            raise ValidationError('Email address is required.')
 
 class EmailSchedulerForm(FlaskForm):
     csv_file = FileField('Sender Accounts CSV', validators=[

@@ -163,17 +163,17 @@
                     </div>
                     <div class="mb-3">
                         {{ single_gmail_form.email.label(class="form-label") }}
-                        {{ single_gmail_form.email(class="form-control", placeholder="Enter Google email address") }}
+                        {{ single_gmail_form.email(class="form-control", placeholder="Enter email address") }}
                         {% if single_gmail_form.email.errors %}
                             {% for error in single_gmail_form.email.errors %}
                                 <div class="text-danger">{{ error }}</div>
                             {% endfor %}
                         {% endif %}
                         <div class="invalid-feedback">
-                            Please enter a valid Google email address (Gmail or Google Workspace)
+                            Please enter a valid email address.
                         </div>
                         <small class="form-text text-muted">
-                            Accepts Gmail addresses and Google Workspace email addresses
+                            Accepts any valid email address.
                         </small>
                     </div>
                     <div class="mb-3">
