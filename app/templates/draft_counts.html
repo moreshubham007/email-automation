@@ -47,15 +47,18 @@
                         <small class="text-muted">Drafts</small>
                     </div>
                     <div class="text-center mt-3">
-                        <button class="btn btn-sm btn-outline-primary fetch-drafts" data-account-id="{{ account.id }}">
-                            <i class="bi bi-arrow-repeat me-1"></i>Fetch Count
+                        <button class="btn btn-primary btn-sm fetch-drafts" data-account-id="{{ account.id }}">
+                            <i class="bi bi-arrow-clockwise me-1"></i>Fetch Count
                         </button>
-                        <div class="spinner-border spinner-border-sm text-primary d-none" 
-                             id="spinner-{{ account.id }}" role="status">
-                        </div>
+                        <button class="btn btn-danger btn-sm delete-drafts" data-account-id="{{ account.id }}">
+                            <i class="bi bi-trash me-1"></i>Delete Drafts
+                        </button>
                     </div>
-                    <div class="mt-2 text-center">
-                        <small class="text-muted" id="lastUpdate-{{ account.id }}">Never updated</small>
+                    <div class="text-center mt-2">
+                        <div class="spinner-border spinner-border-sm text-primary d-none" id="spinner-{{ account.id }}" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <small class="text-muted d-block" id="lastUpdate-{{ account.id }}">Last updated: Never</small>
                     </div>
                 </div>
             </div>

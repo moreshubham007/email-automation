@@ -1125,3 +1125,42 @@ def delete_gmail_account(account_id):
         db.session.rollback()
         flash(f'Error deleting Gmail account: {str(e)}', 'error')
         return redirect(url_for('main.gmail_management')) 
+
+@main.route('/api/gmail/<int:account_id>/drafts', methods=['DELETE'])
+@login_required
+def delete_drafts(account_id):
+    try:
+        account = GmailAccount.query.get_or_404(account_id)
+        
+        # Load credentials
+        creds_data = json.loads(account.credentials)
+        credentials = Credentials(
+            token=creds_data['token'],
+            refresh_token=creds_data['refresh_token'],
+            token_uri=creds_data['token_uri'],
+            client_id=creds_data['client_id'],
+            client_secret=creds_data['client_secret'],
+            scopes=creds_data['scopes']
+        )
+
+        # Create Gmail API service
+        service = build('gmail', 'v1', credentials=credentials)
+
+        # Get all drafts
+        drafts_response = service.users().drafts().list(userId='me').execute()
+        drafts = drafts_response.get('drafts', [])
+
+        # Delete each draft
+        for draft in drafts:
+            service.users().drafts().delete(userId='me', id=draft['id']).execute()
+
+        return jsonify({
+            'success': True,
+            'message': f'Successfully deleted {len(drafts)} drafts'
+        })
+
+    except Exception as e:
+        logger.error(f"Error deleting drafts: {e}")
+        return jsonify({
+            'error': str(e)
+        }), 500 

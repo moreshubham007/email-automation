@@ -19,4 +19,18 @@ body:not([class*="theme-"]) {
 }
 
 /* Add more theme-independent styles as needed */
+
+/* Toast container styles */
+.toast-container {
+    z-index: 1050;
+}
+
+.toast {
+    opacity: 0;
+    transition: opacity 0.15s linear;
+}
+
+.toast.show {
+    opacity: 1;
+}
  
