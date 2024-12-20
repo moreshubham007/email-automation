@@ -69,6 +69,34 @@ class GmailAccount(db.Model):
             logger.warning(f"Could not fetch sender profile: {e}")
             return self.email
 
+    def needs_reauth(self):
+        """Check if the account needs reauthentication"""
+        try:
+            if not self.credentials:
+                return True
+            
+            creds_data = json.loads(self.credentials)
+            credentials = Credentials(
+                token=creds_data.get('token'),
+                refresh_token=creds_data.get('refresh_token'),
+                token_uri=creds_data.get('token_uri'),
+                client_id=creds_data.get('client_id'),
+                client_secret=creds_data.get('client_secret'),
+                scopes=creds_data.get('scopes')
+            )
+            
+            # Force reauth if scopes don't match exactly
+            from app.utils.oauth_utils import SCOPES
+            if set(credentials.scopes) != set(SCOPES):
+                logger.warning(f"Forcing reauth for {self.email} due to scope mismatch")
+                return True
+            
+            return not credentials.valid and not credentials.refresh_token
+            
+        except Exception as e:
+            logger.error(f"Error checking auth status for {self.email}: {str(e)}")
+            return True
+
 class Template(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
