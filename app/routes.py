@@ -536,26 +536,35 @@ def oauth2callback():
     account = GmailAccount.query.get_or_404(account_id)
     
     try:
+        # Check if account needs reauth
+        if account.needs_reauth():
+            # Clear existing credentials
+            account.credentials = None
+            account.authenticated = False
+            db.session.commit()
+        
         # Recreate flow with stored state
         flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
             account.project.client_secret_path,
-            scopes=['https://www.googleapis.com/auth/gmail.send',
-                   'https://www.googleapis.com/auth/gmail.compose'],
+            scopes=[
+                'https://www.googleapis.com/auth/gmail.send',
+                'https://www.googleapis.com/auth/gmail.compose',
+                'https://www.googleapis.com/auth/userinfo.profile',
+                'https://www.googleapis.com/auth/userinfo.email',
+                'https://www.googleapis.com/auth/contacts.readonly'
+            ],
             state=stored_state
         )
         
-        # Set the same redirect URI as in the initial request
-        flow.redirect_uri = session.get('oauth_redirect_uri')
-        
-        # Fetch token with full URL including query parameters
-        authorization_response = request.url
+        flow.redirect_uri = url_for('main.oauth2callback', _external=True)
         if not request.is_secure:
-            authorization_response = authorization_response.replace('http://', 'https://')
+            os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
         
-        flow.fetch_token(authorization_response=authorization_response)
+        # Fetch token
+        flow.fetch_token(authorization_response=request.url)
         credentials = flow.credentials
         
-        # Store credentials securely
+        # Store credentials
         account.credentials = json.dumps({
             'token': credentials.token,
             'refresh_token': credentials.refresh_token,
@@ -567,31 +576,19 @@ def oauth2callback():
         account.authenticated = True
         db.session.commit()
         
-        # Clear sensitive session data
-        session.pop('oauth_account_id', None)
-        session.pop('oauth_state', None)
-        session.pop('oauth_redirect_uri', None)
-        
         flash('Gmail account authenticated successfully!', 'success')
         return redirect(url_for('main.gmail_management'))
         
     except Exception as e:
+        db.session.rollback()
         flash(f'Authentication failed: {str(e)}', 'error')
         return redirect(url_for('main.gmail_management'))
 
-def create_gmail_draft(sender, recipient, subject, body):
-    """Create a draft email using Gmail API"""
+def create_gmail_draft(sender, recipient, subject, body, sender_name=None):
+    """Create a Gmail draft using Gmail API"""
     try:
-        # Load credentials
-        creds_data = json.loads(sender.credentials)
-        credentials = Credentials(
-            token=creds_data['token'],
-            refresh_token=creds_data['refresh_token'],
-            token_uri=creds_data['token_uri'],
-            client_id=creds_data['client_id'],
-            client_secret=creds_data['client_secret'],
-            scopes=creds_data['scopes']
-        )
+        # Get credentials
+        credentials = sender.get_credentials()
 
         # Create Gmail API service
         service = build('gmail', 'v1', credentials=credentials)
@@ -599,7 +596,13 @@ def create_gmail_draft(sender, recipient, subject, body):
         # Create message
         message = MIMEMultipart('alternative')
         message['to'] = recipient
-        message['from'] = sender.email
+        
+        # Use provided sender name or fallback to email only
+        if sender_name:
+            message['from'] = f"{sender_name} <{sender.email}>"
+        else:
+            message['from'] = sender.email
+            
         message['subject'] = subject
 
         # Attach HTML body
@@ -607,21 +610,22 @@ def create_gmail_draft(sender, recipient, subject, body):
         message.attach(html_part)
 
         # Encode message
-        encoded_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
+        raw = base64.urlsafe_b64encode(message.as_bytes()).decode()
 
         # Create draft
         draft = service.users().drafts().create(
             userId='me',
             body={
                 'message': {
-                    'raw': encoded_message
+                    'raw': raw
                 }
             }
         ).execute()
+        return True
 
-        return True, None
     except Exception as e:
-        return False, str(e)
+        logger.error(f"Error in create_gmail_draft: {e}")
+        return False
 
 @main.route('/api/mail-merge', methods=['POST'])
 @login_required
@@ -637,18 +641,16 @@ def process_mail_merge():
         # Group records by template and sender
         groups = {}
         for record in csv_data:
-            if not all(key in record for key in ['template_name', 'sender_email', 'email']):
+            if not all(key in record for key in ['template_name', 'sender_email', 'sender_name', 'email']):
                 raise ValueError("Missing required fields in CSV")
             
             key = (record['template_name'], record['sender_email'])
             
             if key not in groups:
-                # Get template
                 template = Template.query.filter_by(name=record['template_name']).first()
                 if not template:
                     raise ValueError(f"Template not found: {record['template_name']}")
                 
-                # Get sender
                 sender = GmailAccount.query.filter_by(email=record['sender_email']).first()
                 if not sender or not sender.authenticated:
                     raise ValueError(f"Sender not authenticated: {record['sender_email']}")
@@ -666,6 +668,7 @@ def process_mail_merge():
             previews = []
             for (template_name, sender_email), group in groups.items():
                 template = group['template']
+                sender = group['sender']
                 for record in group['records'][:3]:  # Preview first 3
                     subject = template.subject
                     content = template.content
@@ -676,10 +679,13 @@ def process_mail_merge():
                             subject = subject.replace(f'{{{{{key}}}}}', str(value))
                             content = content.replace(f'{{{{{key}}}}}', str(value))
                     
+                    # Format sender with name
+                    sender_display = f"{record.get('sender_name', '')} <{sender_email}>"
+                    
                     previews.append({
                         'template_name': template_name,
-                        'sender_email': sender_email,
-                        'recipient': record.get('email', 'No recipient specified'),
+                        'sender': sender_display,
+                        'recipient': record['email'],
                         'subject': subject,
                         'content': content
                     })
@@ -707,12 +713,13 @@ def process_mail_merge():
                                 subject = subject.replace(f'{{{{{key}}}}}', str(value))
                                 content = content.replace(f'{{{{{key}}}}}', str(value))
 
-                        # Create draft
+                        # Create draft with sender name from CSV
                         success = create_gmail_draft(
                             sender=sender,
                             recipient=record['email'],
                             subject=subject,
-                            body=content
+                            body=content,
+                            sender_name=record.get('sender_name')
                         )
 
                         if success:
@@ -744,55 +751,6 @@ def process_mail_merge():
     except Exception as e:
         logger.error(f"Mail merge error: {str(e)}")
         return jsonify({'error': 'An unexpected error occurred'}), 500
-
-def create_gmail_draft(sender, recipient, subject, body):
-    """Create a Gmail draft"""
-    try:
-        # Load credentials
-        creds_data = json.loads(sender.credentials)
-        credentials = Credentials(
-            token=creds_data['token'],
-            refresh_token=creds_data['refresh_token'],
-            token_uri=creds_data['token_uri'],
-            client_id=creds_data['client_id'],
-            client_secret=creds_data['client_secret'],
-            scopes=[
-                'https://www.googleapis.com/auth/gmail.compose',
-                'https://www.googleapis.com/auth/gmail.modify'
-            ]
-        )
-
-        # Create Gmail service
-        service = build('gmail', 'v1', credentials=credentials)
-
-        # Create message
-        message = MIMEMultipart('alternative')
-        message['to'] = recipient
-        message['from'] = sender.email
-        message['subject'] = subject
-
-        # Add HTML content
-        html_part = MIMEText(body, 'html')
-        message.attach(html_part)
-
-        # Encode message
-        encoded_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
-
-        # Create draft
-        draft = service.users().drafts().create(
-            userId='me',
-            body={
-                'message': {
-                    'raw': encoded_message
-                }
-            }
-        ).execute()
-
-        return True
-
-    except Exception as e:
-        logger.error(f"Error creating draft: {e}")
-        return False
 
 @main.route('/project-management', methods=['GET', 'POST'])
 @login_required

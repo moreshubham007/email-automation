@@ -14,8 +14,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     const lines = csv.split('\n');
                     const headers = lines[0].split(',').map(h => h.trim());
                     
-                    // Validate required headers
-                    const requiredHeaders = ['template_name', 'sender_email', 'email'];
+                    // Update required headers
+                    const requiredHeaders = ['template_name', 'sender_email', 'sender_name', 'email'];
                     const missingHeaders = requiredHeaders.filter(h => !headers.includes(h));
                     
                     if (missingHeaders.length > 0) {
@@ -99,7 +99,7 @@ function showPreview(previews) {
         previewDiv.innerHTML = `
             <div class="mb-2">
                 <strong>Template:</strong> ${preview.template_name}<br>
-                <strong>From:</strong> ${preview.sender_email}<br>
+                <strong>From:</strong> ${preview.sender || preview.sender_email}<br>
                 <strong>To:</strong> ${preview.recipient}<br>
                 <strong>Subject:</strong> ${preview.subject}
             </div>

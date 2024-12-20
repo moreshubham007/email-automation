@@ -4,6 +4,11 @@ import json
 import re
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
+from googleapiclient.discovery import build
+from google.oauth2.credentials import Credentials
+import logging
+
+logger = logging.getLogger(__name__)
 
 class Project(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -26,6 +31,43 @@ class GmailAccount(db.Model):
     authenticated = db.Column(db.Boolean, default=False)
     credentials = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def get_credentials(self):
+        """Get OAuth credentials"""
+        creds_data = json.loads(self.credentials)
+        return Credentials(
+            token=creds_data['token'],
+            refresh_token=creds_data['refresh_token'],
+            token_uri=creds_data['token_uri'],
+            client_id=creds_data['client_id'],
+            client_secret=creds_data['client_secret'],
+            scopes=creds_data['scopes']
+        )
+
+    def get_sender_info(self):
+        """Get formatted sender string (Name <email>)"""
+        try:
+            service = build('gmail', 'v1', credentials=self.get_credentials())
+            people_service = build('people', 'v1', credentials=self.get_credentials())
+            
+            profile_detail = people_service.people().get(
+                resourceName='people/me',
+                personFields='names,emailAddresses'
+            ).execute()
+
+            # Get sender name
+            sender_name = None
+            if 'names' in profile_detail:
+                name = profile_detail['names'][0]
+                sender_name = f"{name.get('givenName', '')} {name.get('familyName', '')}".strip()
+
+            if sender_name:
+                return f"{sender_name} <{self.email}>"
+            return self.email
+            
+        except Exception as e:
+            logger.warning(f"Could not fetch sender profile: {e}")
+            return self.email
 
 class Template(db.Model):
     id = db.Column(db.Integer, primary_key=True)
