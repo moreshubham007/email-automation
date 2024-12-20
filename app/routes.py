@@ -25,6 +25,8 @@ import threading
 import queue
 from werkzeug.urls import url_parse
 from dotenv import load_dotenv
+import requests
+from app.utils.oauth_utils import SCOPES
 
 load_dotenv()
 
@@ -489,12 +491,35 @@ def authenticate_gmail(account_id):
     account = GmailAccount.query.get_or_404(account_id)
     project = account.project
     
-    # Set up OAuth flow with proper error handling
     try:
+        # First, revoke existing credentials if they exist
+        if account.credentials:
+            try:
+                creds_data = json.loads(account.credentials)
+                credentials = Credentials(
+                    token=creds_data.get('token'),
+                    refresh_token=creds_data.get('refresh_token'),
+                    token_uri=creds_data.get('token_uri'),
+                    client_id=creds_data.get('client_id'),
+                    client_secret=creds_data.get('client_secret'),
+                    scopes=creds_data.get('scopes')
+                )
+                # Revoke the token
+                requests.post('https://oauth2.googleapis.com/revoke',
+                    params={'token': credentials.token},
+                    headers={'content-type': 'application/x-www-form-urlencoded'})
+            except Exception as e:
+                logger.warning(f"Error revoking old token: {e}")
+            
+            # Clear stored credentials
+            account.credentials = None
+            account.authenticated = False
+            db.session.commit()
+
+        # Now proceed with new authentication
         flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
             project.client_secret_path,
-            scopes=['https://www.googleapis.com/auth/gmail.send',
-                    'https://www.googleapis.com/auth/gmail.compose']
+            scopes=SCOPES  # Use the imported SCOPES constant
         )
         
         # Get the redirect URI from environment or construct it
@@ -511,9 +536,8 @@ def authenticate_gmail(account_id):
         
         authorization_url, state = flow.authorization_url(
             access_type='offline',
-            include_granted_scopes='true',
-            prompt='consent',  # Force consent screen to get refresh token
-            state=os.urandom(16).hex()  # Add secure state parameter
+            include_granted_scopes='false',  # Don't include additional scopes
+            prompt='consent'  # Force consent screen to get refresh token
         )
         
         session['oauth_state'] = state
@@ -536,23 +560,10 @@ def oauth2callback():
     account = GmailAccount.query.get_or_404(account_id)
     
     try:
-        # Check if account needs reauth
-        if account.needs_reauth():
-            # Clear existing credentials
-            account.credentials = None
-            account.authenticated = False
-            db.session.commit()
-        
         # Recreate flow with stored state
         flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
             account.project.client_secret_path,
-            scopes=[
-                'https://www.googleapis.com/auth/gmail.send',
-                'https://www.googleapis.com/auth/gmail.compose',
-                'https://www.googleapis.com/auth/userinfo.profile',
-                'https://www.googleapis.com/auth/userinfo.email',
-                'https://www.googleapis.com/auth/contacts.readonly'
-            ],
+            scopes=SCOPES,  # Use the imported SCOPES constant
             state=stored_state
         )
         
@@ -564,6 +575,10 @@ def oauth2callback():
         flow.fetch_token(authorization_response=request.url)
         credentials = flow.credentials
         
+        # Verify scopes match exactly
+        if set(credentials.scopes) != set(SCOPES):
+            raise ValueError("Received scopes do not match requested scopes")
+        
         # Store credentials
         account.credentials = json.dumps({
             'token': credentials.token,
@@ -571,7 +586,7 @@ def oauth2callback():
             'token_uri': credentials.token_uri,
             'client_id': credentials.client_id,
             'client_secret': credentials.client_secret,
-            'scopes': credentials.scopes
+            'scopes': SCOPES
         })
         account.authenticated = True
         db.session.commit()
@@ -580,7 +595,7 @@ def oauth2callback():
         return redirect(url_for('main.gmail_management'))
         
     except Exception as e:
-        db.session.rollback()
+        logger.error(f"OAuth callback error: {e}")
         flash(f'Authentication failed: {str(e)}', 'error')
         return redirect(url_for('main.gmail_management'))
 
