@@ -10,7 +10,7 @@
     <div class="card mb-4">
         <div class="card-body">
             <div class="row g-3">
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label class="form-label">Project Filter</label>
                     <select class="form-select" id="projectFilter">
                         <option value="">All Projects</option>
@@ -19,13 +19,16 @@
                         {% endfor %}
                     </select>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label class="form-label">Search Gmail</label>
                     <input type="text" class="form-control" id="searchInput" placeholder="Search by email...">
                 </div>
-                <div class="col-md-4 d-flex align-items-end">
+                <div class="col-md-6 d-flex align-items-end gap-2">
                     <button class="btn btn-primary" id="fetchAllDrafts">
                         <i class="bi bi-cloud-download me-1"></i>Fetch All Draft Counts
+                    </button>
+                    <button class="btn btn-danger" id="deleteAllDrafts">
+                        <i class="bi bi-trash me-1"></i>Delete All Drafts
                     </button>
                 </div>
             </div>

@@ -79,6 +79,67 @@ document.addEventListener('DOMContentLoaded', function() {
         fetchAllButton.innerHTML = '<i class="bi bi-cloud-download me-1"></i>Fetch All Draft Counts';
     });
 
+    // Delete all drafts button
+    const deleteAllButton = document.getElementById('deleteAllDrafts');
+    deleteAllButton.addEventListener('click', async () => {
+        // Show confirmation dialog
+        if (!confirm('Are you sure you want to delete drafts for all visible accounts? This action cannot be undone.')) {
+            return;
+        }
+
+        const visibleAccounts = Array.from(gmailGrid.children)
+            .filter(col => col.style.display !== 'none')
+            .map(col => col.querySelector('.fetch-drafts').dataset.accountId);
+
+        if (visibleAccounts.length === 0) {
+            showToast('No accounts visible to process', 'warning');
+            return;
+        }
+
+        deleteAllButton.disabled = true;
+        deleteAllButton.innerHTML = '<i class="bi bi-trash me-1"></i>Deleting...';
+
+        let successCount = 0;
+        let failureCount = 0;
+
+        for (const accountId of visibleAccounts) {
+            try {
+                const response = await fetch(`/api/gmail/${accountId}/drafts`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                // Update count to 0 and show success message
+                const countElement = document.getElementById(`count-${accountId}`);
+                const lastUpdate = document.getElementById(`lastUpdate-${accountId}`);
+                countElement.textContent = '0';
+                lastUpdate.textContent = `Last updated: ${new Date().toLocaleTimeString()}`;
+                successCount++;
+            } catch (error) {
+                console.error('Error deleting drafts for account:', accountId, error);
+                failureCount++;
+            }
+        }
+
+        // Show final status
+        if (successCount > 0) {
+            showToast(`Successfully deleted drafts for ${successCount} account(s)`, 'success');
+        }
+        if (failureCount > 0) {
+            showToast(`Failed to delete drafts for ${failureCount} account(s)`, 'danger');
+        }
+
+        deleteAllButton.disabled = false;
+        deleteAllButton.innerHTML = '<i class="bi bi-trash me-1"></i>Delete All Drafts';
+    });
+
     // Add delete draft functionality
     async function deleteDrafts(accountId) {
         const countElement = document.getElementById(`count-${accountId}`);
