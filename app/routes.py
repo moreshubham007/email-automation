@@ -642,130 +642,179 @@ def create_gmail_draft(sender, recipient, subject, body, sender_name=None):
         logger.error(f"Error in create_gmail_draft: {e}")
         return False
 
+@main.route('/api/mail-merge/stop', methods=['POST'])
+@login_required
+def stop_mail_merge():
+    try:
+        # Set a global flag to stop the mail merge process
+        current_app.mail_merge_stop_flag = True
+        return jsonify({'status': 'success', 'message': 'Mail merge stop signal sent'})
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
 @main.route('/api/mail-merge', methods=['POST'])
 @login_required
 def process_mail_merge():
     try:
-        # Get CSV data and test mode flag
-        csv_data = json.loads(request.form.get('csv_data', '[]'))
+        # Reset all flags
+        current_app.mail_merge_stop_flag = False
+        current_app.mail_merge_paused = False
+        current_app.mail_merge_pause_reason = None
+        
+        csv_data = json.loads(request.form['csv_data'])
         test_mode = request.form.get('test_mode') == 'true'
         
-        if not csv_data:
-            raise ValueError("No CSV data provided")
-
-        # Group records by template and sender
-        groups = {}
-        for record in csv_data:
-            if not all(key in record for key in ['template_name', 'sender_email', 'sender_name', 'email']):
-                raise ValueError("Missing required fields in CSV")
-            
-            key = (record['template_name'], record['sender_email'])
-            
-            if key not in groups:
-                template = Template.query.filter_by(name=record['template_name']).first()
-                if not template:
-                    raise ValueError(f"Template not found: {record['template_name']}")
-                
-                sender = GmailAccount.query.filter_by(email=record['sender_email']).first()
-                if not sender or not sender.authenticated:
-                    raise ValueError(f"Sender not authenticated: {record['sender_email']}")
-                
-                groups[key] = {
-                    'template': template,
-                    'sender': sender,
-                    'records': []
-                }
-            
-            groups[key]['records'].append(record)
-
         if test_mode:
             # Generate preview
-            previews = []
-            for (template_name, sender_email), group in groups.items():
-                template = group['template']
-                sender = group['sender']
-                for record in group['records'][:3]:  # Preview first 3
-                    subject = template.subject
-                    content = template.content
-                    
-                    # Replace placeholders
-                    for key, value in record.items():
-                        if key not in ['template_name', 'sender_email']:
-                            subject = subject.replace(f'{{{{{key}}}}}', str(value))
-                            content = content.replace(f'{{{{{key}}}}}', str(value))
-                    
-                    # Format sender with name
-                    sender_display = f"{record.get('sender_name', '')} <{sender_email}>"
-                    
-                    previews.append({
-                        'template_name': template_name,
-                        'sender': sender_display,
-                        'recipient': record['email'],
-                        'subject': subject,
-                        'content': content
-                    })
-            
+            previews = generate_mail_merge_previews(csv_data)
             return jsonify({'preview': previews})
-        else:
-            # Process actual mail merge
-            results = {
-                'success': [],
-                'failed': []
-            }
-
-            for (template_name, sender_email), group in groups.items():
-                template = group['template']
-                sender = group['sender']
-
-                for record in group['records']:
-                    try:
-                        subject = template.subject
-                        content = template.content
-                        
-                        # Replace placeholders
-                        for key, value in record.items():
-                            if key not in ['template_name', 'sender_email']:
-                                subject = subject.replace(f'{{{{{key}}}}}', str(value))
-                                content = content.replace(f'{{{{{key}}}}}', str(value))
-
-                        # Create draft with sender name from CSV
-                        success = create_gmail_draft(
-                            sender=sender,
-                            recipient=record['email'],
-                            subject=subject,
-                            body=content,
-                            sender_name=record.get('sender_name')
-                        )
-
-                        if success:
-                            results['success'].append({
-                                'sender': sender_email,
-                                'recipient': record['email']
-                            })
-                        else:
-                            results['failed'].append({
-                                'sender': sender_email,
-                                'recipient': record['email'],
-                                'error': 'Failed to create draft'
-                            })
-
-                    except Exception as e:
-                        results['failed'].append({
-                            'sender': sender_email,
-                            'recipient': record['email'],
-                            'error': str(e)
-                        })
-
-            return jsonify({
-                'message': 'Mail merge completed',
-                'results': results
-            })
-
-    except ValueError as e:
-        return jsonify({'error': str(e)}), 400
+        
+        # Validate data before starting
+        validate_mail_merge_data(csv_data)
+        
+        # Start the mail merge process
+        thread = threading.Thread(
+            target=process_mail_merge_background,
+            args=(current_app._get_current_object(), csv_data)
+        )
+        thread.daemon = True
+        thread.start()
+        
+        return jsonify({
+            'status': 'success', 
+            'message': 'Mail merge process started',
+            'total_records': len(csv_data)
+        })
     except Exception as e:
-        logger.error(f"Mail merge error: {str(e)}")
-        return jsonify({'error': 'An unexpected error occurred'}), 500
+        logger.error(f"Error starting mail merge: {e}")
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+def validate_mail_merge_data(csv_data):
+    """Validate mail merge data before processing"""
+    if not csv_data:
+        raise ValueError("No data provided")
+        
+    required_fields = ['template_name', 'sender_email', 'sender_name', 'email']
+    
+    # Check first record for required fields
+    for field in required_fields:
+        if field not in csv_data[0]:
+            raise ValueError(f"Missing required field: {field}")
+            
+    # Validate all templates and senders exist
+    template_names = set(record['template_name'] for record in csv_data)
+    sender_emails = set(record['sender_email'] for record in csv_data)
+    
+    # Check templates exist
+    existing_templates = Template.query.filter(Template.name.in_(template_names)).all()
+    if len(existing_templates) != len(template_names):
+        missing = template_names - {t.name for t in existing_templates}
+        raise ValueError(f"Templates not found: {', '.join(missing)}")
+    
+    # Check senders exist and are authenticated
+    existing_senders = GmailAccount.query.filter(
+        GmailAccount.email.in_(sender_emails),
+        GmailAccount.authenticated == True
+    ).all()
+    if len(existing_senders) != len(sender_emails):
+        missing = sender_emails - {s.email for s in existing_senders}
+        raise ValueError(f"Senders not authenticated: {', '.join(missing)}")
+
+def process_mail_merge_background(app, csv_data):
+    with app.app_context():
+        total = len(csv_data)
+        processed = 0
+        success = 0
+        failed = 0
+        consecutive_failures = 0
+        last_status = None  # Track last status
+        
+        def send_status_update(status, operation=None, show_pause_reason=False):
+            nonlocal last_status
+            send_to_all_clients({
+                'type': 'progress',
+                'processed': processed,
+                'total': total,
+                'success': success,
+                'failed': failed,
+                'status': status,
+                'currentOperation': operation or f"Processing record {processed} of {total}",
+                'pauseReason': app.mail_merge_pause_reason if status == 'paused' else None,
+                'showPauseReason': show_pause_reason and status == 'paused' and status != last_status
+            })
+            last_status = status
+        
+        try:
+            send_status_update('running', 'Starting mail merge process')
+            
+            for record in csv_data:
+                # Check if stopped
+                if app.mail_merge_stop_flag:
+                    send_status_update('stopped', 'Mail merge stopped by user')
+                    return
+                
+                # Check if paused
+                if app.mail_merge_paused:
+                    # Send pause status once with reason
+                    send_status_update('paused', 'Mail merge paused', True)
+                    # Then wait and send updates without showing reason again
+                    while app.mail_merge_paused:
+                        time.sleep(1)
+                        if app.mail_merge_stop_flag:
+                            send_status_update('stopped', 'Mail merge stopped while paused')
+                            return
+                
+                try:
+                    # Process single record
+                    process_single_mail_merge_record(record)
+                    success += 1
+                    consecutive_failures = 0
+                    
+                    send_to_all_clients({
+                        'type': 'log',
+                        'message': f"Successfully processed {record['email']}",
+                        'level': 'success'
+                    })
+                    
+                except Exception as e:
+                    failed += 1
+                    consecutive_failures += 1
+                    
+                    error_msg = str(e)
+                    send_to_all_clients({
+                        'type': 'log',
+                        'message': f"Error processing {record.get('email', 'unknown')}: {error_msg}",
+                        'level': 'danger'
+                    })
+                    
+                    # Auto-pause on consecutive failures
+                    if consecutive_failures >= 3:
+                        app.mail_merge_paused = True
+                        app.mail_merge_pause_reason = 'Process paused due to multiple consecutive failures'
+                        send_status_update('paused', 'Paused due to multiple failures', True)
+                        continue
+                
+                processed += 1
+                send_status_update('running')
+                
+                # Add small delay between records
+                time.sleep(0.5)
+            
+            # Send final status
+            final_status = 'completed' if processed == total else 'stopped'
+            send_status_update(
+                final_status,
+                f"Mail merge {final_status}. Success: {success}, Failed: {failed}"
+            )
+            
+        except Exception as e:
+            logger.error(f"Mail merge process error: {e}")
+            send_to_all_clients({
+                'type': 'log',
+                'message': f"Critical error in mail merge process: {str(e)}",
+                'level': 'danger'
+            })
+            send_status_update('stopped', 'Process stopped due to error')
 
 @main.route('/project-management', methods=['GET', 'POST'])
 @login_required
@@ -1136,4 +1185,157 @@ def delete_drafts(account_id):
         logger.error(f"Error deleting drafts: {e}")
         return jsonify({
             'error': str(e)
+        }), 500 
+
+def process_single_mail_merge_record(record):
+    """Process a single mail merge record to create a draft email"""
+    try:
+        # Validate required fields
+        required_fields = ['template_name', 'sender_email', 'sender_name', 'email']
+        for field in required_fields:
+            if field not in record:
+                raise ValueError(f"Missing required field: {field}")
+
+        # Get template
+        template = Template.query.filter_by(name=record['template_name']).first()
+        if not template:
+            raise ValueError(f"Template not found: {record['template_name']}")
+
+        # Get sender account
+        sender = GmailAccount.query.filter_by(email=record['sender_email']).first()
+        if not sender or not sender.authenticated:
+            raise ValueError(f"Sender not authenticated: {record['sender_email']}")
+
+        # Process template
+        subject = template.subject
+        content = template.content
+
+        # Replace placeholders in subject and content
+        for key, value in record.items():
+            if key not in ['template_name', 'sender_email']:
+                placeholder = f'{{{{{key}}}}}'
+                subject = subject.replace(placeholder, str(value))
+                content = content.replace(placeholder, str(value))
+
+        # Create draft
+        success = create_gmail_draft(
+            sender=sender,
+            recipient=record['email'],
+            subject=subject,
+            body=content,
+            sender_name=record.get('sender_name')
+        )
+
+        if not success:
+            raise Exception("Failed to create draft")
+
+        send_to_all_clients({
+            'type': 'log',
+            'message': f"Created draft for {record['email']} using template {record['template_name']}",
+            'level': 'success'
+        })
+
+    except Exception as e:
+        send_to_all_clients({
+            'type': 'log',
+            'message': f"Error processing record for {record.get('email', 'unknown')}: {str(e)}",
+            'level': 'danger'
+        })
+        raise  # Re-raise the exception to be caught by the caller
+
+def generate_mail_merge_previews(csv_data):
+    """Generate preview data for mail merge records"""
+    previews = []
+    try:
+        for record in csv_data[:3]:  # Preview first 3 records
+            template = Template.query.filter_by(name=record['template_name']).first()
+            if not template:
+                continue
+
+            subject = template.subject
+            content = template.content
+
+            # Replace placeholders
+            for key, value in record.items():
+                if key not in ['template_name', 'sender_email']:
+                    placeholder = f'{{{{{key}}}}}'
+                    subject = subject.replace(placeholder, str(value))
+                    content = content.replace(placeholder, str(value))
+
+            # Format sender with name
+            sender_display = f"{record.get('sender_name', '')} <{record['sender_email']}>"
+
+            previews.append({
+                'template_name': record['template_name'],
+                'sender': sender_display,
+                'recipient': record['email'],
+                'subject': subject,
+                'content': content
+            })
+
+    except Exception as e:
+        send_to_all_clients({
+            'type': 'log',
+            'message': f"Error generating previews: {str(e)}",
+            'level': 'danger'
+        })
+
+    return previews 
+
+@main.route('/api/mail-merge/pause', methods=['POST'])
+@login_required
+def pause_mail_merge():
+    try:
+        if not getattr(current_app, 'mail_merge_paused', False):
+            current_app.mail_merge_paused = True
+            current_app.mail_merge_pause_reason = 'Process paused by user'
+            
+            send_to_all_clients({
+                'type': 'progress',
+                'status': 'paused',
+                'currentOperation': 'Mail merge paused by user'
+            })
+            
+            return jsonify({
+                'status': 'success',
+                'message': 'Mail merge paused'
+            })
+        return jsonify({
+            'status': 'warning',
+            'message': 'Mail merge is already paused'
+        })
+    except Exception as e:
+        logger.error(f"Error pausing mail merge: {e}")
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
+@main.route('/api/mail-merge/resume', methods=['POST'])
+@login_required
+def resume_mail_merge():
+    try:
+        if getattr(current_app, 'mail_merge_paused', False):
+            current_app.mail_merge_paused = False
+            current_app.mail_merge_pause_reason = None
+            
+            send_to_all_clients({
+                'type': 'progress',
+                'status': 'running',
+                'currentOperation': 'Mail merge resumed'
+            })
+            
+            return jsonify({
+                'status': 'success',
+                'message': 'Mail merge resumed'
+            })
+        return jsonify({
+            'status': 'warning',
+            'message': 'Mail merge is not paused'
+        })
+    except Exception as e:
+        logger.error(f"Error resuming mail merge: {e}")
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
         }), 500 
