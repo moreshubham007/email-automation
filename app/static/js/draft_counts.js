@@ -225,4 +225,122 @@ document.addEventListener('DOMContentLoaded', function() {
         document.body.appendChild(container);
         return container;
     }
+
+    // Multiple selection functionality
+    const selectAllCheckbox = document.getElementById('selectAllAccounts');
+    const fetchSelectedButton = document.getElementById('fetchSelectedDrafts');
+    const deleteSelectedButton = document.getElementById('deleteSelectedDrafts');
+    const selectedCountSpan = document.getElementById('selectedCount');
+    
+    function updateSelectedCount() {
+        const selectedCount = document.querySelectorAll('.account-select:checked').length;
+        selectedCountSpan.textContent = `${selectedCount} account${selectedCount !== 1 ? 's' : ''} selected`;
+        fetchSelectedButton.disabled = selectedCount === 0;
+        deleteSelectedButton.disabled = selectedCount === 0;
+    }
+
+    // Handle select all checkbox
+    selectAllCheckbox.addEventListener('change', function() {
+        const visibleCheckboxes = Array.from(document.querySelectorAll('.account-select'))
+            .filter(checkbox => checkbox.closest('.col').style.display !== 'none');
+        
+        visibleCheckboxes.forEach(checkbox => {
+            checkbox.checked = this.checked;
+        });
+        updateSelectedCount();
+    });
+
+    // Handle individual checkboxes
+    document.querySelectorAll('.account-select').forEach(checkbox => {
+        checkbox.addEventListener('change', () => {
+            updateSelectedCount();
+            
+            // Update select all checkbox state
+            const visibleCheckboxes = Array.from(document.querySelectorAll('.account-select'))
+                .filter(cb => cb.closest('.col').style.display !== 'none');
+            const allChecked = visibleCheckboxes.every(cb => cb.checked);
+            const someChecked = visibleCheckboxes.some(cb => cb.checked);
+            
+            selectAllCheckbox.checked = allChecked;
+            selectAllCheckbox.indeterminate = someChecked && !allChecked;
+        });
+    });
+
+    // Fetch selected accounts
+    fetchSelectedButton.addEventListener('click', async () => {
+        const selectedAccounts = Array.from(document.querySelectorAll('.account-select:checked'))
+            .map(checkbox => checkbox.dataset.accountId);
+
+        fetchSelectedButton.disabled = true;
+        fetchSelectedButton.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i>Fetching...';
+
+        for (const accountId of selectedAccounts) {
+            await fetchDraftCount(accountId);
+        }
+
+        fetchSelectedButton.disabled = false;
+        fetchSelectedButton.innerHTML = '<i class="bi bi-cloud-download me-1"></i>Fetch Selected';
+    });
+
+    // Delete selected accounts' drafts
+    deleteSelectedButton.addEventListener('click', async () => {
+        const selectedAccounts = Array.from(document.querySelectorAll('.account-select:checked'))
+            .map(checkbox => checkbox.dataset.accountId);
+
+        if (!confirm(`Are you sure you want to delete drafts for ${selectedAccounts.length} selected account(s)? This action cannot be undone.`)) {
+            return;
+        }
+
+        deleteSelectedButton.disabled = true;
+        deleteSelectedButton.innerHTML = '<i class="bi bi-trash me-1"></i>Deleting...';
+
+        let successCount = 0;
+        let failureCount = 0;
+
+        for (const accountId of selectedAccounts) {
+            try {
+                const response = await fetch(`/api/gmail/${accountId}/drafts`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                const countElement = document.getElementById(`count-${accountId}`);
+                const lastUpdate = document.getElementById(`lastUpdate-${accountId}`);
+                countElement.textContent = '0';
+                lastUpdate.textContent = `Last updated: ${new Date().toLocaleTimeString()}`;
+                successCount++;
+            } catch (error) {
+                console.error('Error deleting drafts for account:', accountId, error);
+                failureCount++;
+            }
+        }
+
+        if (successCount > 0) {
+            showToast(`Successfully deleted drafts for ${successCount} account(s)`, 'success');
+        }
+        if (failureCount > 0) {
+            showToast(`Failed to delete drafts for ${failureCount} account(s)`, 'danger');
+        }
+
+        deleteSelectedButton.disabled = false;
+        deleteSelectedButton.innerHTML = '<i class="bi bi-trash me-1"></i>Delete Selected';
+    });
+
+    // Update filter functionality to handle select all checkbox state
+    const originalApplyFilters = applyFilters;
+    applyFilters = function() {
+        originalApplyFilters();
+        
+        // Reset select all checkbox when filters change
+        selectAllCheckbox.checked = false;
+        selectAllCheckbox.indeterminate = false;
+        updateSelectedCount();
+    };
 }); 

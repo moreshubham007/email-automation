@@ -32,6 +32,25 @@
                     </button>
                 </div>
             </div>
+            <div class="row mt-3">
+                <div class="col-12">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="selectAllAccounts">
+                            <label class="form-check-label" for="selectAllAccounts">
+                                Select All Visible
+                            </label>
+                        </div>
+                        <button class="btn btn-primary btn-sm" id="fetchSelectedDrafts" disabled>
+                            <i class="bi bi-cloud-download me-1"></i>Fetch Selected
+                        </button>
+                        <button class="btn btn-danger btn-sm" id="deleteSelectedDrafts" disabled>
+                            <i class="bi bi-trash me-1"></i>Delete Selected
+                        </button>
+                        <span class="ms-2 text-muted" id="selectedCount">0 accounts selected</span>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -41,9 +60,15 @@
         <div class="col" data-project="{{ account.project_id }}">
             <div class="card h-100">
                 <div class="card-body">
-                    <div class="mb-3">
-                        <h5 class="card-title mb-2">{{ account.email }}</h5>
-                        <div class="text-muted small">Project: <span class="badge bg-primary">{{ account.project.name }}</span></div>
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input account-select" type="checkbox" 
+                                   data-account-id="{{ account.id }}" id="select-{{ account.id }}">
+                        </div>
+                        <div class="flex-grow-1 ms-2">
+                            <h5 class="card-title mb-2">{{ account.email }}</h5>
+                            <div class="text-muted small">Project: <span class="badge bg-primary">{{ account.project.name }}</span></div>
+                        </div>
                     </div>
                     <div class="draft-count-section text-center py-3">
                         <div class="draft-count display-4" id="count-{{ account.id }}">-</div>
