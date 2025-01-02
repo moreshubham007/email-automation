@@ -53,12 +53,68 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // WebSocket connection for real-time updates
-    const ws = new WebSocket(`ws://${window.location.host}/ws`);
-    
-    ws.onmessage = function(event) {
-        const data = JSON.parse(event.data);
-        updateProgress(data);
-    };
+    function setupWebSocket() {
+        const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const ws = new WebSocket(`${wsProtocol}//${window.location.host}/ws`);
+        
+        ws.onopen = function() {
+            console.log('WebSocket connected');
+            // Start ping interval when connected
+            startPing(ws);
+        };
+        
+        ws.onclose = function() {
+            console.log('WebSocket disconnected, attempting to reconnect...');
+            setTimeout(setupWebSocket, 3000); // Try to reconnect after 3 seconds
+        };
+        
+        ws.onerror = function(error) {
+            console.error('WebSocket error:', error);
+        };
+        
+        ws.onmessage = function(event) {
+            if (event.data === 'pong') {
+                // Handle pong response
+                ws.isAlive = true;
+                return;
+            }
+            const data = JSON.parse(event.data);
+            updateProgress(data);
+        };
+        
+        return ws;
+    }
+
+    function startPing(ws) {
+        ws.isAlive = true;
+        const pingInterval = setInterval(() => {
+            if (ws.readyState === WebSocket.OPEN) {
+                if (!ws.isAlive) {
+                    clearInterval(pingInterval);
+                    ws.close();
+                    return;
+                }
+                ws.isAlive = false;
+                ws.send('ping');
+            } else {
+                clearInterval(pingInterval);
+            }
+        }, 30000); // Send ping every 30 seconds
+        
+        // Clear interval when websocket closes
+        ws.addEventListener('close', () => clearInterval(pingInterval));
+    }
+
+    // Initialize WebSocket connection
+    let ws = setupWebSocket();
+
+    // Health check interval
+    setInterval(() => {
+        if (ws.readyState === WebSocket.CLOSED || ws.readyState === WebSocket.CLOSING) {
+            console.log('WebSocket connection lost, attempting to reconnect...');
+            ws = setupWebSocket();
+        }
+    }, 5000);
 
     function updateButtonStates(status) {
         startBtn.classList.add('d-none');
@@ -90,38 +146,44 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function updateProgress(data) {
         if (!progressSection.classList.contains('d-none')) {
-            const progress = document.getElementById('mergeProgress');
-            const status = document.getElementById('mergeStatus');
-            const processed = document.getElementById('processedCount');
-            const total = document.getElementById('totalCount');
-            const success = document.getElementById('successCount');
-            const failed = document.getElementById('failedCount');
-            const current = document.getElementById('currentOperation');
-            const logContainer = document.getElementById('logContainer');
+            try {
+                const progress = document.getElementById('mergeProgress');
+                const status = document.getElementById('mergeStatus');
+                const processed = document.getElementById('processedCount');
+                const total = document.getElementById('totalCount');
+                const success = document.getElementById('successCount');
+                const failed = document.getElementById('failedCount');
+                const current = document.getElementById('currentOperation');
+                const logContainer = document.getElementById('logContainer');
 
-            if (data.type === 'progress') {
-                const percentage = (data.processed / data.total) * 100;
-                progress.style.width = `${percentage}%`;
-                progress.setAttribute('aria-valuenow', percentage);
-                
-                status.textContent = data.status;
-                processed.textContent = data.processed;
-                total.textContent = data.total;
-                success.textContent = data.success;
-                failed.textContent = data.failed;
-                current.textContent = data.currentOperation;
+                if (data.type === 'progress') {
+                    const percentage = (data.processed / data.total) * 100;
+                    progress.style.width = `${percentage}%`;
+                    progress.setAttribute('aria-valuenow', percentage);
+                    
+                    status.textContent = data.status;
+                    processed.textContent = data.processed;
+                    total.textContent = data.total;
+                    success.textContent = data.success;
+                    failed.textContent = data.failed;
+                    current.textContent = data.currentOperation;
 
-                updateButtonStates(data.status);
+                    updateButtonStates(data.status);
 
-                // Only show pause reason modal when status changes to paused
-                if (data.status === 'paused' && data.pauseReason && data.showPauseReason) {
-                    showPauseReason(data.pauseReason);
+                    // Only show pause reason modal when status changes to paused
+                    if (data.status === 'paused' && data.pauseReason && data.showPauseReason) {
+                        showPauseReason(data.pauseReason);
+                    }
+                } else if (data.type === 'log') {
+                    const logEntry = document.createElement('div');
+                    logEntry.className = `log-entry text-${data.level}`;
+                    logEntry.textContent = `${new Date().toLocaleTimeString()}: ${data.message}`;
+                    logContainer.insertBefore(logEntry, logContainer.firstChild);
                 }
-            } else if (data.type === 'log') {
-                const logEntry = document.createElement('div');
-                logEntry.className = `log-entry text-${data.level}`;
-                logEntry.textContent = `${new Date().toLocaleTimeString()}: ${data.message}`;
-                logContainer.insertBefore(logEntry, logContainer.firstChild);
+            } catch (error) {
+                console.error('Error updating progress:', error);
+                // Attempt to reconnect WebSocket if there's an issue
+                ws = setupWebSocket();
             }
         }
     }

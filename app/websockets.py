@@ -1,4 +1,5 @@
 from flask_sock import Sock
+from flask import request
 import json
 import threading
 import logging
@@ -18,6 +19,15 @@ email_status = {}
 def init_app(app):
     """Initialize WebSocket functionality"""
     sock.init_app(app)
+    
+    # Add CORS headers to the WebSocket route
+    @app.after_request
+    def after_request(response):
+        if request and 'ws' in request.path:
+            response.headers.add('Access-Control-Allow-Origin', '*')
+            response.headers.add('Access-Control-Allow-Headers', '*')
+            response.headers.add('Access-Control-Allow-Methods', '*')
+        return response
 
 def send_to_all_clients(message):
     """Send message to all connected WebSocket clients"""
@@ -41,12 +51,13 @@ def websocket(ws):
             'status': 'connected'
         }))
         
-        # Keep connection alive
+        # Keep connection alive and handle ping/pong
         while True:
             try:
-                # Handle incoming messages
                 message = ws.receive()
-                if message:
+                if message == 'ping':
+                    ws.send('pong')
+                elif message:
                     logger.info(f"Received message: {message}")
             except Exception as e:
                 logger.error(f"Error in websocket loop: {e}")
